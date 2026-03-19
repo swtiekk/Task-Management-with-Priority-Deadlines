@@ -121,7 +121,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 <rect x="8" y="8" width="5" height="5" rx="1.5" fill="white" opacity=".2" />
               </svg>
             </div>
-            <span style={S.brandName}>Task Manager</span>
+            <span style={S.brandName}>Taskr</span>
           </div>
 
           {/* Menu */}
@@ -150,7 +150,7 @@ function Layout({ children }: { children: React.ReactNode }) {
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                 <path d="M1.5 3.5h10M1.5 6.5h7M1.5 9.5h8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
-              All Projects
+              All Tasks
             </div>
             <div
               style={S.navItem(isActive('/overdue'))}
@@ -160,7 +160,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             >
               <Clock size={13} />
               Overdue
-              {totalOverdue > 0 && <span style={S.badge(true)}>{totalOverdue}</span>}
+              {totalOverdue > 0 && <span style={S.badge(true)} title={`${totalOverdue} overdue task${totalOverdue !== 1 ? 's' : ''}`}>{totalOverdue}</span>}
             </div>
           </div>
 
