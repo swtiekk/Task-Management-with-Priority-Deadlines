@@ -1,6 +1,4 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -93,6 +91,11 @@ class TaskListView(APIView):
         if project_id:
             tasks = tasks.filter(project=project_id)
 
+        # Filter by deadline
+        deadline = request.query_params.get('deadline')
+        if deadline:
+            tasks = tasks.filter(deadline=deadline)
+
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
@@ -156,5 +159,11 @@ class OverdueTasksView(APIView):
         overdue_tasks = Task.objects.filter(
             deadline__lt=today
         ).exclude(status='Completed')
+
+        # Filter by priority if provided
+        priority = request.query_params.get('priority')
+        if priority:
+            overdue_tasks = overdue_tasks.filter(priority=priority)
+
         serializer = TaskSerializer(overdue_tasks, many=True)
         return Response(serializer.data)
