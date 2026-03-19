@@ -21,7 +21,7 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
 
     def get_is_overdue(self, obj):
-        return obj.is_overdue()
+        return obj.is_overdue  # removed parentheses
 
     def validate_deadline(self, value):
         if value < timezone.now().date():
@@ -34,7 +34,9 @@ class TaskSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     tasks = TaskSerializer(many=True, read_only=True)
     total_tasks = serializers.SerializerMethodField()
+    completed_tasks = serializers.SerializerMethodField()
     overdue_tasks = serializers.SerializerMethodField()
+    completion_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -45,13 +47,25 @@ class ProjectSerializer(serializers.ModelSerializer):
             'created_at',
             'tasks',
             'total_tasks',
+            'completed_tasks',
             'overdue_tasks',
+            'completion_percentage',
         ]
 
     def get_total_tasks(self, obj):
         return obj.tasks.count()
 
+    def get_completed_tasks(self, obj):
+        return obj.tasks.filter(status='Completed').count()
+
     def get_overdue_tasks(self, obj):
         return obj.tasks.filter(
             deadline__lt=timezone.now().date()
         ).exclude(status='Completed').count()
+
+    def get_completion_percentage(self, obj):
+        total = obj.tasks.count()
+        if total == 0:
+            return 0
+        completed = obj.tasks.filter(status='Completed').count()
+        return round((completed / total) * 100)

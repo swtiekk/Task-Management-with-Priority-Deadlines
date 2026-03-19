@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, ArrowRight } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Clock } from 'lucide-react'
 import api from '../api/axios'
 
 interface Task {
@@ -8,6 +8,10 @@ interface Task {
   priority: 'Low' | 'Medium' | 'High'
   status: 'Pending' | 'In Progress' | 'Completed'
   deadline: string; project: number; is_overdue: boolean
+}
+
+interface Project {
+  id: number; name: string
 }
 
 const priorityStyle = (p: string) => {
@@ -24,142 +28,256 @@ const daysLate = (deadline: string) => {
 function OverduePage() {
   const navigate = useNavigate()
   const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filterPriority, setFilterPriority] = useState('')
 
-  useEffect(() => { fetchOverdue() }, [])
+  useEffect(() => { fetchData() }, [])
 
-  const fetchOverdue = async () => {
+  const fetchData = async () => {
     try {
-      const res = await api.get('/tasks/overdue/')
-      setTasks(res.data.tasks ?? res.data)
+      const [overdueRes, projectsRes] = await Promise.all([
+        api.get('/tasks/overdue/'),
+        api.get('/projects/')
+      ])
+      setTasks(overdueRes.data.tasks ?? overdueRes.data)
+      setProjects(projectsRes.data)
     } catch { setError('Failed to load overdue tasks.') }
     finally { setLoading(false) }
   }
 
+  const getProjectName = (id: number) => {
+    const project = projects.find(p => p.id === id)
+    return project ? project.name : `Project #${id}`
+  }
+
   const filtered = filterPriority ? tasks.filter(t => t.priority === filterPriority) : tasks
-  const avgDays = tasks.length ? Math.round(tasks.reduce((s, t) => s + daysLate(t.deadline), 0) / tasks.length) : 0
+  const avgDays = tasks.length
+    ? Math.round(tasks.reduce((s, t) => s + daysLate(t.deadline), 0) / tasks.length)
+    : 0
   const highCount = tasks.filter(t => t.priority === 'High').length
+  const medCount = tasks.filter(t => t.priority === 'Medium').length
 
   const pill = (active: boolean): React.CSSProperties => ({
-    fontSize: '12px', fontWeight: 500, padding: '6px 14px', borderRadius: '20px',
-    border: `1px solid ${active ? 'rgba(226,75,74,.3)' : '#E0DFD8'}`,
-    background: active ? '#FEF0F0' : '#ffffff',
-    color: active ? '#E24B4A' : '#8C8B85',
+    fontSize: '12px', fontWeight: 500, padding: '6px 16px', borderRadius: '20px',
+    border: `1px solid ${active ? 'rgba(226,75,74,.4)' : 'rgba(255,255,255,0.3)'}`,
+    background: active ? '#fff' : 'rgba(255,255,255,0.12)',
+    color: active ? '#E24B4A' : 'rgba(255,255,255,0.8)',
     cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+    transition: 'all .15s',
   })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", backgroundColor: '#fafaf8' }}>
 
-      {/* Topbar */}
-      <div style={{ backgroundColor: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.07)', padding: '0 32px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-        <div>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#1C1C1A', lineHeight: 1 }}>Overdue Tasks</div>
-          <div style={{ fontSize: '12px', color: '#8C8B85', marginTop: '2px' }}>Tasks that have passed their deadline</div>
-        </div>
-        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#E8F5F0', border: '1.5px solid rgba(29,158,117,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 500, color: '#0F6E56' }}>AX</div>
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
-
-        {/* Hero */}
-        <div style={{ background: '#FEF0F0', border: '1px solid rgba(226,75,74,.12)', borderRadius: '12px', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: '44px', height: '44px', background: '#E24B4A', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <AlertTriangle size={22} color="#fff" />
-          </div>
+      {/* ── Red topbar ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #E24B4A 0%, #A32D2D 100%)',
+        padding: '24px 32px 52px',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#E24B4A', margin: 0 }}>
-              {tasks.length} task{tasks.length !== 1 ? 's' : ''} overdue
-            </h1>
-            <p style={{ fontSize: '13px', color: '#B03030', marginTop: '3px' }}>These tasks need to be resolved or rescheduled immediately.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+              <div style={{ width: '32px', height: '32px', background: 'rgba(255,255,255,0.2)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Clock size={16} color="#fff" />
+              </div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '28px', fontWeight: 400, color: '#fff', letterSpacing: '-.3px', lineHeight: 1 }}>
+                Overdue Tasks
+              </div>
+            </div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginTop: '2px' }}>
+              Tasks that have passed their deadline
+            </div>
           </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '24px', flexShrink: 0 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', color: '#E24B4A', lineHeight: 1 }}>{avgDays}</div>
-              <div style={{ fontSize: '10px', color: '#B03030', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: '3px', fontWeight: 500 }}>Avg days late</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', color: '#E24B4A', lineHeight: 1 }}>{highCount}</div>
-              <div style={{ fontSize: '10px', color: '#B03030', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: '3px', fontWeight: 500 }}>High priority</div>
-            </div>
+          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, color: '#fff' }}>
+            AX
           </div>
         </div>
 
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '10px', color: '#B8B7B0', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Priority:</span>
+        {/* Filters inside topbar */}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.55)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: '4px' }}>
+            Priority:
+          </span>
           {['All', 'High', 'Medium', 'Low'].map(p => (
-            <button key={p} style={pill((p === 'All' && !filterPriority) || filterPriority === p)} onClick={() => setFilterPriority(p === 'All' ? '' : p)}>
+            <button
+              key={p}
+              style={pill((p === 'All' && !filterPriority) || filterPriority === p)}
+              onClick={() => setFilterPriority(p === 'All' ? '' : p)}
+            >
               {p}
             </button>
           ))}
         </div>
+      </div>
+
+      <div style={{ padding: '0 32px 32px', marginTop: '-28px' }}>
+
+        {/* ── Stat cards overlapping header ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { label: 'Total Overdue', value: tasks.length, sub: 'tasks past deadline', color: '#A32D2D', bar: '#E24B4A', bg: '#FEF0F0' },
+            { label: 'Avg Days Late', value: avgDays, sub: 'days behind schedule', color: '#7A4A0A', bar: '#EF9F27', bg: '#FFFBEB' },
+            { label: 'High Priority', value: highCount, sub: `+ ${medCount} medium priority`, color: '#A32D2D', bar: '#E24B4A', bg: '#fff' },
+          ].map(s => (
+            <div key={s.label} style={{
+              background: s.bg, border: '1px solid rgba(0,0,0,0.07)',
+              borderRadius: '14px', padding: '18px 20px',
+              position: 'relative', overflow: 'hidden',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
+            }}>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: s.bar }} />
+              <div style={{ fontSize: '10px', fontWeight: 500, color: '#B8B7B0', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '10px' }}>
+                {s.label}
+              </div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '32px', color: s.color, lineHeight: 1 }}>
+                {s.value}
+              </div>
+              <div style={{ fontSize: '11px', color: '#B8B7B0', marginTop: '5px' }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
 
         {/* Error */}
-        {error && <div style={{ background: '#FEF0F0', border: '1px solid #F7C1C1', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#A32D2D' }}>{error}</div>}
-
-        {loading && <div style={{ textAlign: 'center', padding: '48px', color: '#B8B7B0', fontSize: '13px' }}>Loading...</div>}
-
-        {/* Empty */}
-        {!loading && tasks.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '72px 24px', background: '#fff', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.07)' }}>
-            <div style={{ width: '52px', height: '52px', background: '#E8F5F0', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <AlertTriangle size={24} color="#1D9E75" />
-            </div>
-            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '17px', color: '#1C1C1A', marginBottom: '6px' }}>No overdue tasks!</p>
-            <p style={{ fontSize: '13px', color: '#B8B7B0' }}>You're all caught up. Great work!</p>
+        {error && (
+          <div style={{ background: '#FEF0F0', border: '1px solid #F7C1C1', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#A32D2D', marginBottom: '16px' }}>
+            {error}
           </div>
         )}
 
-        {/* Table */}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '48px', color: '#B8B7B0', fontSize: '13px' }}>Loading...</div>
+        )}
+
+        {/* Empty state */}
+        {!loading && tasks.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '72px 24px', background: '#fff', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.07)' }}>
+            <div style={{ width: '56px', height: '56px', background: '#E8F5F0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <AlertTriangle size={26} color="#1D9E75" />
+            </div>
+            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#1C1C1A', marginBottom: '8px' }}>
+              No overdue tasks!
+            </p>
+            <p style={{ fontSize: '13px', color: '#B8B7B0', marginBottom: '20px' }}>
+              You're all caught up. Great work!
+            </p>
+            <button
+              onClick={() => navigate('/')}
+              style={{ background: '#1D9E75', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 20px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+            >
+              Back to Overview
+            </button>
+          </div>
+        )}
+
+        {/* Task table */}
         {!loading && filtered.length > 0 && (
-          <div style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 90px 90px 110px', padding: '10px 18px', background: '#F5F4EF', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-              {['Task', 'Project', 'Priority', 'Days late', 'Action'].map(h => (
-                <span key={h} style={{ fontSize: '10px', fontWeight: 500, color: '#B8B7B0', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</span>
+          <div style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+
+            {/* Table header */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 100px 100px 120px', padding: '12px 20px', background: '#FEF0F0', borderBottom: '1px solid rgba(226,75,74,.1)' }}>
+              {['Task', 'Project', 'Priority', 'Days Late', 'Action'].map(h => (
+                <span key={h} style={{ fontSize: '10px', fontWeight: 600, color: '#B03030', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {h}
+                </span>
               ))}
             </div>
 
-            {filtered.map((task, i) => (
-              <div
-                key={task.id}
-                style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 90px 90px 110px', padding: '14px 18px', borderBottom: i === filtered.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.04)', alignItems: 'center', cursor: 'pointer', transition: 'background .12s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#FAFAF8'}
-                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
-              >
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 500, color: '#1C1C1A' }}>{task.title}</div>
-                  <div style={{ fontSize: '11px', color: '#E24B4A', fontWeight: 600, marginTop: '3px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <AlertTriangle size={10} /> {task.deadline}
+            {filtered.map((task, i) => {
+              const days = daysLate(task.deadline)
+              const urgency = days > 14 ? '#A32D2D' : days > 7 ? '#E24B4A' : '#EF9F27'
+              return (
+                <div
+                  key={task.id}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '2fr 1fr 100px 100px 120px',
+                    padding: '14px 20px',
+                    borderBottom: i === filtered.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.04)',
+                    alignItems: 'center', transition: 'background .12s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#FFFAFA'}
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
+                >
+                  {/* Task info */}
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#1C1C1A' }}>
+                      {task.title}
+                    </div>
+                    {task.description && (
+                      <div style={{ fontSize: '11px', color: '#8C8B85', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '280px' }}>
+                        {task.description}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '11px', color: '#E24B4A', fontWeight: 500, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <AlertTriangle size={10} /> Due {task.deadline}
+                    </div>
+                  </div>
+
+                  {/* Project name */}
+                  <div>
+                    <span style={{ fontSize: '12px', color: '#5F5E5A', background: '#F5F4EF', padding: '3px 9px', borderRadius: '20px', border: '1px solid #E8E7E0' }}>
+                      {getProjectName(task.project)}
+                    </span>
+                  </div>
+
+                  {/* Priority badge */}
+                  <div>
+                    <span style={{
+                      fontSize: '10px', fontWeight: 600, padding: '4px 10px',
+                      borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.04em',
+                      backgroundColor: priorityStyle(task.priority).bg,
+                      color: priorityStyle(task.priority).color,
+                    }}>
+                      {task.priority}
+                    </span>
+                  </div>
+
+                  {/* Days late — color coded */}
+                  <div>
+                    <span style={{
+                      fontSize: '12px', fontWeight: 700, padding: '4px 10px',
+                      borderRadius: '20px', background: `${urgency}18`,
+                      color: urgency, border: `1px solid ${urgency}33`,
+                    }}>
+                      {days}d late
+                    </span>
+                  </div>
+
+                  {/* Action */}
+                  <div>
+                    <button
+                      onClick={() => navigate(`/projects/${task.project}`)}
+                      style={{
+                        background: 'transparent', border: '1px solid #E0DFD8',
+                        borderRadius: '8px', padding: '6px 12px', fontSize: '12px',
+                        fontWeight: 500, color: '#5F5E5A', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        fontFamily: "'DM Sans', sans-serif", whiteSpace: 'nowrap',
+                        transition: 'all .12s',
+                      }}
+                      onMouseEnter={e => {
+                        const b = e.currentTarget as HTMLButtonElement
+                        b.style.background = '#E24B4A'
+                        b.style.color = '#fff'
+                        b.style.borderColor = '#E24B4A'
+                      }}
+                      onMouseLeave={e => {
+                        const b = e.currentTarget as HTMLButtonElement
+                        b.style.background = 'transparent'
+                        b.style.color = '#5F5E5A'
+                        b.style.borderColor = '#E0DFD8'
+                      }}
+                    >
+                      View <ArrowRight size={11} />
+                    </button>
                   </div>
                 </div>
-                <div style={{ fontSize: '12px', color: '#8C8B85' }}>Project #{task.project}</div>
-                <div>
-                  <span style={{ fontSize: '10px', fontWeight: 500, padding: '3px 9px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.04em', backgroundColor: priorityStyle(task.priority).bg, color: priorityStyle(task.priority).color }}>
-                    {task.priority}
-                  </span>
-                </div>
-                <div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px', background: '#FEF0F0', color: '#E24B4A' }}>
-                    {daysLate(task.deadline)}d
-                  </span>
-                </div>
-                <div>
-                  <button
-                    onClick={() => navigate(`/projects/${task.project}`)}
-                    style={{ background: 'transparent', border: '1px solid #E0DFD8', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', fontWeight: 500, color: '#8C8B85', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontFamily: "'DM Sans', sans-serif", whiteSpace: 'nowrap' }}
-                  >
-                    View <ArrowRight size={11} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
-
       </div>
     </div>
   )

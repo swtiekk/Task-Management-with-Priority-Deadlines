@@ -48,5 +48,6 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+    @property
     def is_overdue(self):
         return self.deadline < timezone.now().date() and self.status != 'Completed'
