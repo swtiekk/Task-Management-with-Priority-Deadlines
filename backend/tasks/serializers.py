@@ -1,0 +1,57 @@
+from rest_framework import serializers
+from django.utils import timezone
+from .models import Project, Task
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    is_overdue = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Task
+        fields = [
+            'id',
+            'project',
+            'title',
+            'description',
+            'priority',
+            'status',
+            'deadline',
+            'created_at',
+            'is_overdue',
+        ]
+
+    def get_is_overdue(self, obj):
+        return obj.is_overdue()
+
+    def validate_deadline(self, value):
+        if value < timezone.now().date():
+            raise serializers.ValidationError(
+                "Deadline cannot be in the past."
+            )
+        return value
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    tasks = TaskSerializer(many=True, read_only=True)
+    total_tasks = serializers.SerializerMethodField()
+    overdue_tasks = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = [
+            'id',
+            'name',
+            'description',
+            'created_at',
+            'tasks',
+            'total_tasks',
+            'overdue_tasks',
+        ]
+
+    def get_total_tasks(self, obj):
+        return obj.tasks.count()
+
+    def get_overdue_tasks(self, obj):
+        return obj.tasks.filter(
+            deadline__lt=timezone.now().date()
+        ).exclude(status='Completed').count()
