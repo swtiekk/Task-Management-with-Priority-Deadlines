@@ -163,8 +163,8 @@ function HomePage() {
                       </span>
                     </div>
                   </div>
-                  <span style={{ fontSize: '11px', flexShrink: 0, color: task.is_overdue ? '#E24B4A' : '#B8B7B0', fontWeight: task.is_overdue ? 500 : 400 }}>
-                    {task.deadline}
+                  <span style={{ fontSize: '11px', flexShrink: 0, color: task.is_overdue ? '#E24B4A' : '#B8B7B0', fontWeight: task.is_overdue ? 600 : 400 }}>
+                    {task.is_overdue ? '⚠ ' : ''}{task.deadline}
                   </span>
                 </div>
               ))}
