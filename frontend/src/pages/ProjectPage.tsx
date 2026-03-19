@@ -230,7 +230,6 @@ function ProjectPage() {
                     </div>
                   </div>
 
-                  {/* Task preview rows — no navigation, just display */}
                   {tasks.length === 0 ? (
                     <div
                       style={{ padding: '18px', textAlign: 'center', color: '#B8B7B0', fontSize: '12px', cursor: 'pointer' }}
