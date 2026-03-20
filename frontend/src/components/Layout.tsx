@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Trash2, Clock, LayoutDashboard, FolderOpen, AlertCircle } from 'lucide-react'
+import { Plus, Trash2, Clock, LayoutDashboard, FolderOpen } from 'lucide-react'
 import api from '../api/axios'
+import { useTheme } from '../context/ThemeContext'
+import ThemeToggle from './ThemeToggle'
 
 interface Project {
   id: number
@@ -28,6 +30,8 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([])
   const [totalOverdue, setTotalOverdue] = useState(0)
   const [toast, setToast] = useState('')
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
 
   useEffect(() => { fetchProjects() }, [location.pathname])
 
@@ -60,9 +64,9 @@ function Layout({ children }: { children: React.ReactNode }) {
   const navItem = (active: boolean): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', gap: '9px',
     padding: '9px 12px', borderRadius: '10px', fontSize: '13px',
-    color: active ? '#0F6E56' : '#6B7280',
+    color: active ? '#0F6E56' : isDark ? '#9CA3AF' : '#6B7280',
     fontWeight: active ? 600 : 400,
-    backgroundColor: active ? '#E8F5F0' : 'transparent',
+    backgroundColor: active ? (isDark ? '#0F3D2E' : '#E8F5F0') : 'transparent',
     cursor: 'pointer', transition: 'all .15s', marginBottom: '2px',
     border: 'none', width: '100%', textAlign: 'left' as const,
   })
@@ -71,7 +75,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     <>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 
-      {/* Toast notification */}
+      {/* Toast */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
@@ -94,20 +98,23 @@ function Layout({ children }: { children: React.ReactNode }) {
         ::-webkit-scrollbar-thumb { background: #E0DFD8; border-radius: 4px; }
       `}</style>
 
-      <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", backgroundColor: '#fafaf8' }}>
+      <div style={{
+        display: 'flex', minHeight: '100vh',
+        fontFamily: "'DM Sans', sans-serif",
+        backgroundColor: isDark ? '#111827' : '#fafaf8',
+        color: isDark ? '#F9FAFB' : '#1C1C1A',
+      }}>
 
         {/* Sidebar */}
         <aside style={{
-  width: '220px',
-  height: '100vh',
-  backgroundColor: '#ffffff',
-  borderRight: '1px solid rgba(0,0,0,0.07)',
-  padding: '24px 14px',
-  display: 'flex', flexDirection: 'column', flexShrink: 0,
-  position: 'sticky',
-  top: 0,
-  overflowY: 'auto',
-}}>
+          width: '220px', height: '100vh',
+          backgroundColor: isDark ? '#1F2937' : '#ffffff',
+          borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}`,
+          padding: '24px 14px',
+          display: 'flex', flexDirection: 'column', flexShrink: 0,
+          position: 'sticky', top: 0, overflowY: 'auto',
+        }}>
+
           {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 6px', marginBottom: '32px' }}>
             <div style={{ width: '32px', height: '32px', background: '#0F6E56', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -118,7 +125,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 <rect x="9" y="9" width="5" height="5" rx="1.5" fill="white" opacity=".25" />
               </svg>
             </div>
-            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '17px', color: '#1C1C1A', fontWeight: 400 }}>
+            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '17px', color: isDark ? '#F9FAFB' : '#1C1C1A', fontWeight: 400 }}>
               TaskFlow
             </span>
           </div>
@@ -131,29 +138,24 @@ function Layout({ children }: { children: React.ReactNode }) {
             <button
               style={navItem(isActive('/'))}
               onClick={() => navigate('/')}
-              onMouseEnter={e => { if (!isActive('/')) (e.currentTarget as HTMLButtonElement).style.background = '#F5F4EF' }}
+              onMouseEnter={e => { if (!isActive('/')) (e.currentTarget as HTMLButtonElement).style.background = isDark ? '#374151' : '#F5F4EF' }}
               onMouseLeave={e => { if (!isActive('/')) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              aria-label="Overview"
             >
-              <LayoutDashboard size={14} />
-              Overview
+              <LayoutDashboard size={14} /> Overview
             </button>
             <button
               style={navItem(isActive('/projects'))}
               onClick={() => navigate('/projects')}
-              onMouseEnter={e => { if (!isActive('/projects')) (e.currentTarget as HTMLButtonElement).style.background = '#F5F4EF' }}
+              onMouseEnter={e => { if (!isActive('/projects')) (e.currentTarget as HTMLButtonElement).style.background = isDark ? '#374151' : '#F5F4EF' }}
               onMouseLeave={e => { if (!isActive('/projects')) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              aria-label="All Projects"
             >
-              <FolderOpen size={14} />
-              All Projects
+              <FolderOpen size={14} /> All Projects
             </button>
             <button
-              style={{ ...navItem(isActive('/overdue')), color: isActive('/overdue') ? '#0F6E56' : totalOverdue > 0 ? '#A32D2D' : '#6B7280' }}
+              style={{ ...navItem(isActive('/overdue')), color: isActive('/overdue') ? '#0F6E56' : totalOverdue > 0 ? '#A32D2D' : isDark ? '#9CA3AF' : '#6B7280' }}
               onClick={() => navigate('/overdue')}
-              onMouseEnter={e => { if (!isActive('/overdue')) (e.currentTarget as HTMLButtonElement).style.background = '#F5F4EF' }}
+              onMouseEnter={e => { if (!isActive('/overdue')) (e.currentTarget as HTMLButtonElement).style.background = isDark ? '#374151' : '#F5F4EF' }}
               onMouseLeave={e => { if (!isActive('/overdue')) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              aria-label={`Overdue tasks${totalOverdue > 0 ? `: ${totalOverdue}` : ''}`}
             >
               <Clock size={14} />
               Overdue
@@ -166,7 +168,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Divider */}
-          <div style={{ height: '1px', background: 'rgba(0,0,0,0.06)', margin: '12px 0' }} />
+          <div style={{ height: '1px', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', margin: '12px 0' }} />
 
           {/* Projects */}
           <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -177,8 +179,6 @@ function Layout({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => navigate('/projects')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1D9E75', display: 'flex', padding: '2px', borderRadius: '4px' }}
-                title="Add new project"
-                aria-label="Add new project"
               >
                 <Plus size={13} />
               </button>
@@ -195,11 +195,9 @@ function Layout({ children }: { children: React.ReactNode }) {
                   key={p.id}
                   style={navItem(isProjectActive(p.id))}
                   onClick={() => navigate(`/projects/${p.id}`)}
-                  onMouseEnter={e => { if (!isProjectActive(p.id)) (e.currentTarget as HTMLDivElement).style.background = '#F5F4EF' }}
+                  onMouseEnter={e => { if (!isProjectActive(p.id)) (e.currentTarget as HTMLDivElement).style.background = isDark ? '#374151' : '#F5F4EF' }}
                   onMouseLeave={e => { if (!isProjectActive(p.id)) (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Project: ${p.name}`}
+                  role="button" tabIndex={0}
                 >
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: CARD_COLORS[(p.color && p.color > 0) ? p.color % CARD_COLORS.length : (p.id % (CARD_COLORS.length - 1)) + 1].dot, flexShrink: 0 }} />
                   <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -213,8 +211,6 @@ function Layout({ children }: { children: React.ReactNode }) {
                   <button
                     onClick={e => handleDelete(p.id, e)}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D3D1C7', padding: '2px', display: 'flex', borderRadius: '4px' }}
-                    title={`Delete ${p.name}`}
-                    aria-label={`Delete project ${p.name}`}
                   >
                     <Trash2 size={11} />
                   </button>
@@ -223,13 +219,16 @@ function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Footer */}
-          <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+          {/* Footer — Profile + Toggle */}
+          <div style={{ paddingTop: '16px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
+            {/* 🌙 Dark mode toggle */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+              <ThemeToggle />
+            </div>
             <button
-              style={{ ...navItem(false), color: '#9CA3AF' }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#F5F4EF'}
+              style={{ ...navItem(false), color: isDark ? '#9CA3AF' : '#9CA3AF' }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? '#374151' : '#F5F4EF'}
               onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
-              aria-label="Profile"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.4" />

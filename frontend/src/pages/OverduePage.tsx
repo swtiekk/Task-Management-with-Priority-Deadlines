@@ -15,9 +15,9 @@ interface Project {
 }
 
 const priorityStyle = (p: string) => {
-  if (p === 'High') return { bg: '#FEF0F0', color: '#A32D2D' }
-  if (p === 'Medium') return { bg: '#FDF4E7', color: '#7A4A0A' }
-  return { bg: '#E8F5F0', color: '#085041' }
+  if (p === 'High') return { bg: 'var(--danger-light)', color: 'var(--danger)' }
+  if (p === 'Medium') return { bg: 'var(--warning-light)', color: '#7A4A0A' }
+  return { bg: 'var(--accent-light)', color: '#085041' }
 }
 
 const daysLate = (deadline: string) => {
@@ -63,19 +63,21 @@ function OverduePage() {
     fontSize: '12px', fontWeight: 500, padding: '6px 16px', borderRadius: '20px',
     border: `1px solid ${active ? 'rgba(226,75,74,.4)' : 'rgba(255,255,255,0.3)'}`,
     background: active ? '#fff' : 'rgba(255,255,255,0.12)',
-    color: active ? '#E24B4A' : 'rgba(255,255,255,0.8)',
-    cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-    transition: 'all .15s',
+    color: active ? 'var(--danger)' : 'rgba(255,255,255,0.8)',
+    cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .15s',
   })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", backgroundColor: '#fafaf8' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', minHeight: '100vh',
+      fontFamily: "'DM Sans', sans-serif",
+      backgroundColor: 'var(--bg)',
+    }}>
 
-      {/* ── Red topbar ── */}
+      {/* Red topbar */}
       <div style={{
         background: 'linear-gradient(135deg, #E24B4A 0%, #A32D2D 100%)',
-        padding: '24px 32px 52px',
-        flexShrink: 0,
+        padding: '24px 32px 52px', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
@@ -96,17 +98,14 @@ function OverduePage() {
           </div>
         </div>
 
-        {/* Filters inside topbar */}
+        {/* Filters */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.55)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', marginRight: '4px' }}>
             Priority:
           </span>
           {['All', 'High', 'Medium', 'Low'].map(p => (
-            <button
-              key={p}
-              style={pill((p === 'All' && !filterPriority) || filterPriority === p)}
-              onClick={() => setFilterPriority(p === 'All' ? '' : p)}
-            >
+            <button key={p} style={pill((p === 'All' && !filterPriority) || filterPriority === p)}
+              onClick={() => setFilterPriority(p === 'All' ? '' : p)}>
               {p}
             </button>
           ))}
@@ -115,58 +114,65 @@ function OverduePage() {
 
       <div style={{ padding: '0 32px 32px', marginTop: '-28px' }}>
 
-        {/* ── Stat cards overlapping header ── */}
+        {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px', marginBottom: '24px' }}>
           {[
-            { label: 'Total Overdue', value: tasks.length, sub: 'tasks past deadline', color: '#A32D2D', bar: '#E24B4A', bg: '#FEF0F0' },
-            { label: 'Avg Days Late', value: avgDays, sub: 'days behind schedule', color: '#7A4A0A', bar: '#EF9F27', bg: '#FFFBEB' },
-            { label: 'High Priority', value: highCount, sub: `+ ${medCount} medium priority`, color: '#A32D2D', bar: '#E24B4A', bg: '#fff' },
+            { label: 'Total Overdue', value: tasks.length, sub: 'tasks past deadline', color: 'var(--danger)', bar: 'var(--danger)', bg: 'var(--danger-light)' },
+            { label: 'Avg Days Late', value: avgDays, sub: 'days behind schedule', color: 'var(--warning)', bar: 'var(--warning)', bg: 'var(--warning-light)' },
+            { label: 'High Priority', value: highCount, sub: `+ ${medCount} medium priority`, color: 'var(--danger)', bar: 'var(--danger)', bg: 'var(--surface)' },
           ].map(s => (
             <div key={s.label} style={{
-              background: s.bg, border: '1px solid rgba(0,0,0,0.07)',
+              background: s.bg, border: '1px solid var(--border)',
               borderRadius: '14px', padding: '18px 20px',
               position: 'relative', overflow: 'hidden',
               boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
             }}>
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: s.bar }} />
-              <div style={{ fontSize: '10px', fontWeight: 500, color: '#B8B7B0', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '10px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 500, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '10px' }}>
                 {s.label}
               </div>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '32px', color: s.color, lineHeight: 1 }}>
                 {s.value}
               </div>
-              <div style={{ fontSize: '11px', color: '#B8B7B0', marginTop: '5px' }}>{s.sub}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-hint)', marginTop: '5px' }}>{s.sub}</div>
             </div>
           ))}
         </div>
 
         {/* Error */}
         {error && (
-          <div style={{ background: '#FEF0F0', border: '1px solid #F7C1C1', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#A32D2D', marginBottom: '16px' }}>
+          <div style={{ background: 'var(--danger-light)', border: '1px solid #F7C1C1', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
             {error}
           </div>
         )}
 
         {loading && (
-          <div style={{ textAlign: 'center', padding: '48px', color: '#B8B7B0', fontSize: '13px' }}>Loading...</div>
+          <div style={{ textAlign: 'center', padding: '48px', color: 'var(--text-hint)', fontSize: '13px' }}>
+            Loading...
+          </div>
         )}
 
         {/* Empty state */}
         {!loading && tasks.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '72px 24px', background: '#fff', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.07)' }}>
-            <div style={{ width: '56px', height: '56px', background: '#E8F5F0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <AlertTriangle size={26} color="#1D9E75" />
+          <div style={{
+            textAlign: 'center', padding: '72px 24px',
+            background: 'var(--surface)', borderRadius: '16px',
+            border: '1px solid var(--border)',
+          }}>
+            <div style={{ width: '56px', height: '56px', background: 'var(--accent-light)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <AlertTriangle size={26} color="var(--accent)" />
             </div>
-            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#1C1C1A', marginBottom: '8px' }}>
+            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: 'var(--text-primary)', marginBottom: '8px' }}>
               No overdue tasks!
             </p>
-            <p style={{ fontSize: '13px', color: '#B8B7B0', marginBottom: '20px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-hint)', marginBottom: '20px' }}>
               You're all caught up. Great work!
             </p>
-            <button
-              onClick={() => navigate('/')}
-              style={{ background: '#1D9E75', color: '#fff', border: 'none', borderRadius: '10px', padding: '9px 20px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
-            >
+            <button onClick={() => navigate('/')} style={{
+              background: 'var(--accent)', color: '#fff', border: 'none',
+              borderRadius: '10px', padding: '9px 20px', fontSize: '13px',
+              fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+            }}>
               Back to Overview
             </button>
           </div>
@@ -174,12 +180,12 @@ function OverduePage() {
 
         {/* Task table */}
         {!loading && filtered.length > 0 && (
-          <div style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
 
             {/* Table header */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 100px 100px 120px', padding: '12px 20px', background: '#FEF0F0', borderBottom: '1px solid rgba(226,75,74,.1)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 100px 100px 120px', padding: '12px 20px', background: 'var(--danger-light)', borderBottom: '1px solid rgba(226,75,74,.1)' }}>
               {['Task', 'Project', 'Priority', 'Days Late', 'Action'].map(h => (
-                <span key={h} style={{ fontSize: '10px', fontWeight: 600, color: '#B03030', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <span key={h} style={{ fontSize: '10px', fontWeight: 600, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {h}
                 </span>
               ))}
@@ -189,35 +195,33 @@ function OverduePage() {
               const days = daysLate(task.deadline)
               const urgency = days > 14 ? '#A32D2D' : days > 7 ? '#E24B4A' : '#EF9F27'
               return (
-                <div
-                  key={task.id}
-                  style={{
-                    display: 'grid', gridTemplateColumns: '2fr 1fr 100px 100px 120px',
-                    padding: '14px 20px',
-                    borderBottom: i === filtered.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.04)',
-                    alignItems: 'center', transition: 'background .12s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#FFFAFA'}
+                <div key={task.id} style={{
+                  display: 'grid', gridTemplateColumns: '2fr 1fr 100px 100px 120px',
+                  padding: '14px 20px',
+                  borderBottom: i === filtered.length - 1 ? 'none' : '1px solid var(--border)',
+                  alignItems: 'center', transition: 'background .12s',
+                }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--bg)'}
                   onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
                 >
                   {/* Task info */}
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#1C1C1A' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
                       {task.title}
                     </div>
                     {task.description && (
-                      <div style={{ fontSize: '11px', color: '#8C8B85', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '280px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '280px' }}>
                         {task.description}
                       </div>
                     )}
-                    <div style={{ fontSize: '11px', color: '#E24B4A', fontWeight: 500, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 500, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <AlertTriangle size={10} /> Due {task.deadline}
                     </div>
                   </div>
 
                   {/* Project name */}
                   <div>
-                    <span style={{ fontSize: '12px', color: '#5F5E5A', background: '#F5F4EF', padding: '3px 9px', borderRadius: '20px', border: '1px solid #E8E7E0' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg2)', padding: '3px 9px', borderRadius: '20px', border: '1px solid var(--border-soft)' }}>
                       {getProjectName(task.project)}
                     </span>
                   </div>
@@ -234,7 +238,7 @@ function OverduePage() {
                     </span>
                   </div>
 
-                  {/* Days late — color coded */}
+                  {/* Days late */}
                   <div>
                     <span style={{
                       fontSize: '12px', fontWeight: 700, padding: '4px 10px',
@@ -250,24 +254,24 @@ function OverduePage() {
                     <button
                       onClick={() => navigate(`/projects/${task.project}`)}
                       style={{
-                        background: 'transparent', border: '1px solid #E0DFD8',
+                        background: 'transparent', border: '1px solid var(--border-soft)',
                         borderRadius: '8px', padding: '6px 12px', fontSize: '12px',
-                        fontWeight: 500, color: '#5F5E5A', cursor: 'pointer',
+                        fontWeight: 500, color: 'var(--text-muted)', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: '5px',
                         fontFamily: "'DM Sans', sans-serif", whiteSpace: 'nowrap',
                         transition: 'all .12s',
                       }}
                       onMouseEnter={e => {
                         const b = e.currentTarget as HTMLButtonElement
-                        b.style.background = '#E24B4A'
+                        b.style.background = 'var(--danger)'
                         b.style.color = '#fff'
-                        b.style.borderColor = '#E24B4A'
+                        b.style.borderColor = 'var(--danger)'
                       }}
                       onMouseLeave={e => {
                         const b = e.currentTarget as HTMLButtonElement
                         b.style.background = 'transparent'
-                        b.style.color = '#5F5E5A'
-                        b.style.borderColor = '#E0DFD8'
+                        b.style.color = 'var(--text-muted)'
+                        b.style.borderColor = 'var(--border-soft)'
                       }}
                     >
                       View <ArrowRight size={11} />

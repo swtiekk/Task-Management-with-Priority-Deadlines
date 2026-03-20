@@ -27,6 +27,27 @@
   --info-light: #E6F1FB;
 }
 
+html.dark {
+  --bg: #111827;
+  --bg2: #1a2332;
+  --bg3: #374151;
+  --surface: #1F2937;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-soft: #374151;
+
+  --text-primary: #F9FAFB;
+  --text-muted: #9CA3AF;
+  --text-hint: #6B7280;
+
+
+  --accent-light: #0F3D2E;
+  --success-light: #0F3D2E;
+  --danger-light: #3D1010;
+  --warning-light: #3D2A00;
+  --info-light: #0C1E35;
+}
+
+
 *,
 *::before,
 *::after {
@@ -71,3 +92,4 @@ button { font-family: 'DM Sans', sans-serif; }
 
 /* Link reset */
 a { text-decoration: none; color: inherit; }
+
