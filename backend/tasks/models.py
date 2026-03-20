@@ -3,21 +3,17 @@ from django.utils import timezone
 
 
 class Project(models.Model):
-    """Represents a project that contains multiple tasks."""
-
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    color = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
 
-    class Meta:
-        ordering = ['-created_at']
-
 
 class Task(models.Model):
-    """Represents a task belonging to a project with priority and deadline tracking."""
 
     PRIORITY_CHOICES = [
         ('Low', 'Low'),
@@ -50,14 +46,11 @@ class Task(models.Model):
     )
     deadline = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
 
     @property
     def is_overdue(self):
-        """Returns True if the task deadline has passed and is not completed."""
         return self.deadline < timezone.now().date() and self.status != 'Completed'
-
-    class Meta:
-        ordering = ['-created_at']

@@ -17,16 +17,42 @@ class TaskSerializer(serializers.ModelSerializer):
             'status',
             'deadline',
             'created_at',
+            'updated_at',
             'is_overdue',
         ]
 
     def get_is_overdue(self, obj):
-        return obj.is_overdue  # removed parentheses
+        return obj.is_overdue
 
     def validate_deadline(self, value):
-        if value < timezone.now().date():
+        # Allow past deadlines on update (edit existing task)
+        request = self.context.get('request')
+        if self.instance is None:
+            # Creating new task — prevent past deadline
+            if value < timezone.now().date():
+                raise serializers.ValidationError(
+                    "Deadline cannot be in the past."
+                )
+        return value
+
+    def validate_title(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Title cannot be blank.")
+        return value.strip()
+
+    def validate_priority(self, value):
+        valid = ['Low', 'Medium', 'High']
+        if value not in valid:
             raise serializers.ValidationError(
-                "Deadline cannot be in the past."
+                f"Priority must be one of: {', '.join(valid)}"
+            )
+        return value
+
+    def validate_status(self, value):
+        valid = ['Pending', 'In Progress', 'Completed']
+        if value not in valid:
+            raise serializers.ValidationError(
+                f"Status must be one of: {', '.join(valid)}"
             )
         return value
 
@@ -44,13 +70,20 @@ class ProjectSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'description',
+            'color',
             'created_at',
+            'updated_at',
             'tasks',
             'total_tasks',
             'completed_tasks',
             'overdue_tasks',
             'completion_percentage',
         ]
+
+    def validate_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Project name cannot be blank.")
+        return value.strip()
 
     def get_total_tasks(self, obj):
         return obj.tasks.count()

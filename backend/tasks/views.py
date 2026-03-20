@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,7 +11,7 @@ from .serializers import ProjectSerializer, TaskSerializer
 class ProjectListView(APIView):
 
     def get(self, request):
-        projects = Project.objects.all()
+        projects = Project.objects.all().order_by('-created_at')
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
@@ -55,6 +54,21 @@ class ProjectDetailView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, request, pk):
+        project = self.get_object(pk)
+        if project is None:
+            return Response(
+                {"error": "Project not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = ProjectSerializer(
+            project, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def delete(self, request, pk):
         project = self.get_object(pk)
         if project is None:
@@ -74,7 +88,7 @@ class ProjectDetailView(APIView):
 class TaskListView(APIView):
 
     def get(self, request):
-        tasks = Task.objects.all()
+        tasks = Task.objects.all().order_by('-created_at')
 
         # Filter by priority
         priority = request.query_params.get('priority')
@@ -100,7 +114,10 @@ class TaskListView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = TaskSerializer(data=request.data)
+        serializer = TaskSerializer(
+            data=request.data,
+            context={'request': request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -132,7 +149,27 @@ class TaskDetailView(APIView):
                 {"error": "Task not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
-        serializer = TaskSerializer(task, data=request.data)
+        serializer = TaskSerializer(
+            task, data=request.data,
+            context={'request': request}
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        task = self.get_object(pk)
+        if task is None:
+            return Response(
+                {"error": "Task not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = TaskSerializer(
+            task, data=request.data,
+            partial=True,
+            context={'request': request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
