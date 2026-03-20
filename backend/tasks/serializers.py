@@ -25,14 +25,10 @@ class TaskSerializer(serializers.ModelSerializer):
         return obj.is_overdue
 
     def validate_deadline(self, value):
-        # Allow past deadlines on update (edit existing task)
-        request = self.context.get('request')
-        if self.instance is None:
-            # Creating new task — prevent past deadline
-            if value < timezone.now().date():
-                raise serializers.ValidationError(
-                    "Deadline cannot be in the past."
-                )
+        if value < timezone.now().date():
+            raise serializers.ValidationError(
+                "Deadline cannot be in the past."
+            )
         return value
 
     def validate_title(self, value):
