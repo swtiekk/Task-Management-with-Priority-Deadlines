@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Trash2, Clock, LayoutDashboard, FolderOpen, AlertCircle } from 'lucide-react'
+import { Plus, Trash2, Clock, LayoutDashboard, FolderOpen, LogOut } from 'lucide-react'
 import api from '../api/axios'
 
 interface Project {
@@ -29,7 +29,11 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [totalOverdue, setTotalOverdue] = useState(0)
   const [toast, setToast] = useState('')
 
-  useEffect(() => { fetchProjects() }, [location.pathname])
+  useEffect(() => { 
+    if (localStorage.getItem('access_token')) {
+      fetchProjects() 
+    }
+  }, [location.pathname])
 
   const fetchProjects = async () => {
     try {
@@ -37,6 +41,12 @@ function Layout({ children }: { children: React.ReactNode }) {
       setProjects(res.data)
       setTotalOverdue(res.data.reduce((s: number, p: Project) => s + p.overdue_tasks, 0))
     } catch { }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    navigate('/login')
   }
 
   const showToast = (msg: string) => {
@@ -98,16 +108,16 @@ function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Sidebar */}
         <aside style={{
-  width: '220px',
-  height: '100vh',
-  backgroundColor: '#ffffff',
-  borderRight: '1px solid rgba(0,0,0,0.07)',
-  padding: '24px 14px',
-  display: 'flex', flexDirection: 'column', flexShrink: 0,
-  position: 'sticky',
-  top: 0,
-  overflowY: 'auto',
-}}>
+          width: '220px',
+          height: '100vh',
+          backgroundColor: '#ffffff',
+          borderRight: '1px solid rgba(0,0,0,0.07)',
+          padding: '24px 14px',
+          display: 'flex', flexDirection: 'column', flexShrink: 0,
+          position: 'sticky',
+          top: 0,
+          overflowY: 'auto',
+        }}>
           {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 6px', marginBottom: '32px' }}>
             <div style={{ width: '32px', height: '32px', background: '#0F6E56', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -226,16 +236,20 @@ function Layout({ children }: { children: React.ReactNode }) {
           {/* Footer */}
           <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
             <button
+              onClick={handleLogout}
               style={{ ...navItem(false), color: '#9CA3AF' }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#F5F4EF'}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
-              aria-label="Profile"
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2';
+                (e.currentTarget as HTMLButtonElement).style.color = '#DC2626';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                (e.currentTarget as HTMLButtonElement).style.color = '#9CA3AF';
+              }}
+              aria-label="Logout"
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-              Profile
+              <LogOut size={14} />
+              Logout
             </button>
           </div>
         </aside>
