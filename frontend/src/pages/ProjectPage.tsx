@@ -16,15 +16,15 @@ interface Task {
 }
 
 const CARD_COLORS = [
-  { bg: '#ffffff', border: '#E0DFD8', dot: '#B8B7B0', text: '#5F5E5A' },
-  { bg: '#FFFDF5', border: '#F9E4A0', dot: '#F59E0B', text: '#7A4A0A' },
-  { bg: '#F4FAF5', border: '#A5D6A7', dot: '#1D9E75', text: '#085041' },
-  { bg: '#F0F7FF', border: '#90CAF9', dot: '#378ADD', text: '#0C447C' },
-  { bg: '#FFF0F4', border: '#F48FB1', dot: '#E24B4A', text: '#A32D2D' },
-  { bg: '#F5F3FF', border: '#CE93D8', dot: '#7F77DD', text: '#3C3489' },
-  { bg: '#FFF5F2', border: '#FFAB91', dot: '#D85A30', text: '#712B13' },
-  { bg: '#F0FAFA', border: '#80DEEA', dot: '#0097A7', text: '#004D5C' },
-  { bg: '#FBF5FF', border: '#CE93D8', dot: '#9C27B0', text: '#4A148C' },
+  { bg: '#ffffff', border: '#EEEDE8', dot: '#B8B7B0', text: '#6B6A66' },
+  { bg: '#FEFDF8', border: '#EEE5C0', dot: '#D4920A', text: '#6B4A0A' },
+  { bg: '#F8FCF9', border: '#C8E0CC', dot: '#1A8F68', text: '#0A4535' },
+  { bg: '#F6F9FE', border: '#C0D4EE', dot: '#3070BE', text: '#0A3A6B' },
+  { bg: '#FEF6F6', border: '#EEC8C8', dot: '#C84040', text: '#8B2020' },
+  { bg: '#F7F5FE', border: '#D8CCF0', dot: '#6B65CC', text: '#322C80' },
+  { bg: '#FEF7F4', border: '#EED0BC', dot: '#C05028', text: '#622010' },
+  { bg: '#F4FAFB', border: '#B0D8E0', dot: '#007A8F', text: '#003D4A' },
+  { bg: '#F9F4FE', border: '#D8C0EC', dot: '#8820A0', text: '#420D5C' },
 ]
 
 const getColor = (project: Project) => {
