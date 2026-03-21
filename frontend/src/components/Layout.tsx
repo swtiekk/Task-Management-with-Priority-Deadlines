@@ -226,9 +226,10 @@ function Layout({ children }: { children: React.ReactNode }) {
               <ThemeToggle />
             </div>
             <button
-              style={{ ...navItem(false), color: isDark ? '#9CA3AF' : '#9CA3AF' }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = isDark ? '#374151' : '#F5F4EF'}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
+              style={navItem(isActive('/profile'))}
+              onClick={() => navigate('/profile')}
+              onMouseEnter={e => { if (!isActive('/profile')) (e.currentTarget as HTMLButtonElement).style.background = isDark ? '#374151' : '#F5F4EF' }}
+              onMouseLeave={e => { if (!isActive('/profile')) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.4" />

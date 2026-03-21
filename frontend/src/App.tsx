@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import ProjectPage from './pages/ProjectPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import OverduePage from './pages/OverduePage'
+import ProfilePage from './pages/ProfilePage'
 
 function NotFound() {
   const navigate = useNavigate()
@@ -30,6 +31,7 @@ function App() {
         <Route path="/projects" element={<Layout><ProjectPage /></Layout>} />
         <Route path="/projects/:id" element={<Layout><ProjectDetailPage /></Layout>} />
         <Route path="/overdue" element={<Layout><OverduePage /></Layout>} />
+        <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
