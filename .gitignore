@@ -36,3 +36,4 @@ logs
 .idea/
 *.swp
 *.swo
+backend/db.sqlite3
