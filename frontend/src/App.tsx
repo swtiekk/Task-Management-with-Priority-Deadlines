@@ -1,10 +1,16 @@
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import ProjectPage from './pages/ProjectPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import OverduePage from './pages/OverduePage'
 import ProfilePage from './pages/ProfilePage'
+import LoginPage from './pages/LoginPage'
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const user = localStorage.getItem('user')
+  return user ? <>{children}</> : <Navigate to="/login" replace />
+}
 
 function NotFound() {
   const navigate = useNavigate()
@@ -27,11 +33,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout><HomePage /></Layout>} />
-        <Route path="/projects" element={<Layout><ProjectPage /></Layout>} />
-        <Route path="/projects/:id" element={<Layout><ProjectDetailPage /></Layout>} />
-        <Route path="/overdue" element={<Layout><OverduePage /></Layout>} />
-        <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
+        <Route path="/projects" element={<PrivateRoute><Layout><ProjectPage /></Layout></PrivateRoute>} />
+        <Route path="/projects/:id" element={<PrivateRoute><Layout><ProjectDetailPage /></Layout></PrivateRoute>} />
+        <Route path="/overdue" element={<PrivateRoute><Layout><OverduePage /></Layout></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
