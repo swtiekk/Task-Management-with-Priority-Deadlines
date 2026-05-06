@@ -90,22 +90,18 @@ class TaskListView(APIView):
     def get(self, request):
         tasks = Task.objects.all().order_by('-created_at')
 
-        # Filter by priority
         priority = request.query_params.get('priority')
         if priority:
             tasks = tasks.filter(priority=priority)
 
-        # Filter by status
         task_status = request.query_params.get('status')
         if task_status:
             tasks = tasks.filter(status=task_status)
 
-        # Filter by project
         project_id = request.query_params.get('project')
         if project_id:
             tasks = tasks.filter(project=project_id)
 
-        # Filter by deadline
         deadline = request.query_params.get('deadline')
         if deadline:
             tasks = tasks.filter(deadline=deadline)
@@ -197,7 +193,6 @@ class OverdueTasksView(APIView):
             deadline__lt=today
         ).exclude(status='Completed')
 
-        # Filter by priority if provided
         priority = request.query_params.get('priority')
         if priority:
             overdue_tasks = overdue_tasks.filter(priority=priority)

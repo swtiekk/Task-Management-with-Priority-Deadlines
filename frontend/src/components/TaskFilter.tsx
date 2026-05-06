@@ -5,27 +5,17 @@ interface Props {
   onStatusChange: (value: string) => void
 }
 
-const pillStyle = (active: boolean, activeColor = '#1D9E75'): React.CSSProperties => ({
-  padding: '5px 14px',
-  borderRadius: '20px',
-  fontSize: '12px',
-  fontWeight: 600,
-  border: '1px solid',
-  cursor: 'pointer',
-  transition: 'all 0.15s',
-  backgroundColor: active ? activeColor : '#ffffff',
-  color: active ? '#fff' : '#888780',
-  borderColor: active ? activeColor : '#E0DFD8',
-  fontFamily: "'DM Sans', sans-serif",
-  whiteSpace: 'nowrap' as const,
+const pillStyle = (active: boolean, activeColor = 'var(--accent)'): React.CSSProperties => ({
+  padding: '5px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+  border: '1px solid', cursor: 'pointer', transition: 'all 0.15s',
+  backgroundColor: active ? activeColor : 'var(--surface)',
+  color: active ? '#fff' : 'var(--text-muted)',
+  borderColor: active ? activeColor : 'var(--border-soft)',
+  fontFamily: "'DM Sans', sans-serif", whiteSpace: 'nowrap' as const,
 })
 
 const divider: React.CSSProperties = {
-  width: '1px',
-  height: '20px',
-  background: '#E0DFD8',
-  margin: '0 2px',
-  alignSelf: 'center',
+  width: '1px', height: '20px', background: 'var(--border-soft)', margin: '0 2px', alignSelf: 'center',
 }
 
 function TaskFilter({ priority, status, onPriorityChange, onStatusChange }: Props) {
@@ -33,48 +23,25 @@ function TaskFilter({ priority, status, onPriorityChange, onStatusChange }: Prop
   const statuses = ['All', 'Pending', 'In Progress', 'Completed']
 
   return (
-    <div style={{
-      display: 'flex',
-      gap: '6px',
-      marginBottom: '16px',
-      flexWrap: 'wrap',
-      alignItems: 'center',
-      fontFamily: "'DM Sans', sans-serif",
-    }}>
-      {/* Priority label */}
-      <span style={{ fontSize: '11px', color: '#B4B2A9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '2px' }}>
+    <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+      <span style={{ fontSize: '11px', color: 'var(--text-hint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '2px' }}>
         Priority
       </span>
-
       {priorities.map(p => (
-        <button
-          key={p}
-          onClick={() => onPriorityChange(p === 'All' ? '' : p)}
-          style={pillStyle(
-            (p === 'All' && !priority) || priority === p,
-            '#1D9E75'
-          )}
-        >
+        <button key={p} onClick={() => onPriorityChange(p === 'All' ? '' : p)}
+          style={pillStyle((p === 'All' && !priority) || priority === p, 'var(--accent)')}>
           {p}
         </button>
       ))}
 
       <div style={divider} />
 
-      {/* Status label */}
-      <span style={{ fontSize: '11px', color: '#B4B2A9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '2px' }}>
+      <span style={{ fontSize: '11px', color: 'var(--text-hint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '2px' }}>
         Status
       </span>
-
       {statuses.map(s => (
-        <button
-          key={s}
-          onClick={() => onStatusChange(s === 'All' ? '' : s)}
-          style={pillStyle(
-            (s === 'All' && !status) || status === s,
-            '#2C2C2A'
-          )}
-        >
+        <button key={s} onClick={() => onStatusChange(s === 'All' ? '' : s)}
+          style={pillStyle((s === 'All' && !status) || status === s, 'var(--text-primary)')}>
           {s}
         </button>
       ))}

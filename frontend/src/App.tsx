@@ -1,10 +1,14 @@
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
+<<<<<<< HEAD
 import type { JSX } from 'react'
+=======
+>>>>>>> 8224f62d054782341a71003b6335b6195a750d10
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import ProjectPage from './pages/ProjectPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import OverduePage from './pages/OverduePage'
+<<<<<<< HEAD
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 
@@ -15,6 +19,15 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return <Navigate to="/login" replace />
   }
   return children
+=======
+import ProfilePage from './pages/ProfilePage'
+import LoginPage from './pages/LoginPage'
+import SignUpPage from './pages/SignUpPage'
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const user = localStorage.getItem('user')
+  return user ? <>{children}</> : <Navigate to="/login" replace />
+>>>>>>> 8224f62d054782341a71003b6335b6195a750d10
 }
 
 function NotFound() {
@@ -39,6 +52,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+<<<<<<< HEAD
         <Route path="/register" element={<RegisterPage />} />
         
         <Route path="/" element={
@@ -62,6 +76,14 @@ function App() {
           </ProtectedRoute>
         } />
         
+=======
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
+        <Route path="/projects" element={<PrivateRoute><Layout><ProjectPage /></Layout></PrivateRoute>} />
+        <Route path="/projects/:id" element={<PrivateRoute><Layout><ProjectDetailPage /></Layout></PrivateRoute>} />
+        <Route path="/overdue" element={<PrivateRoute><Layout><OverduePage /></Layout></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
+>>>>>>> 8224f62d054782341a71003b6335b6195a750d10
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

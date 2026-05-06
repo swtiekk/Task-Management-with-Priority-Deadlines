@@ -1,33 +1,35 @@
-<<<<<<< HEAD
-import React from 'react'
-import LoginForm from '../components/LoginForm'
-
-const LoginPage: React.FC = () => {
-  return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <LoginForm />
-    </div>
-  )
-}
-
-export default LoginPage
-=======
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
-export default function LoginPage() {
+export default function SignUpPage() {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rePassword, setRePassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (password !== rePassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
     setLoading(true)
     try {
+      await axios.post('http://localhost:8000/api/v1/auth/users/', {
+        name,
+        email,
+        password,
+        re_password: rePassword,
+      })
+
+      // Auto-login after signup
       const tokenRes = await axios.post('http://localhost:8000/api/v1/auth/jwt/create/', {
         email,
         password,
@@ -44,10 +46,40 @@ export default function LoginPage() {
       navigate('/profile')
 
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Invalid email or password.')
+      const data = err.response?.data
+      if (data) {
+        const messages = Object.values(data).flat()
+        setError((messages[0] as string) || 'Registration failed.')
+      } else {
+        setError('Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
+  }
+
+  const inputStyle = {
+    width: '100%',
+    padding: '11px 14px',
+    border: '1.5px solid #e2e8f0',
+    borderRadius: '10px',
+    fontSize: '14px',
+    color: '#0f172a',
+    background: '#f8fafc',
+    outline: 'none',
+    fontFamily: 'inherit',
+    transition: 'border-color 0.2s',
+    boxSizing: 'border-box' as const,
+  }
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#64748b',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.07em',
+    marginBottom: '7px',
   }
 
   return (
@@ -152,93 +184,72 @@ export default function LoginPage() {
             margin: '0 0 6px 0',
             letterSpacing: '-0.3px',
           }}>
-            Welcome back
+            Create account
           </h2>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 36px 0' }}>
-            Sign in with your email to continue
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px 0' }}>
+            Sign up to get started with TaskFlow
           </p>
 
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSignUp}>
+
+            {/* Name */}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={labelStyle}>Full Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="John Doe"
+                required
+                style={inputStyle}
+                onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
+                onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
+              />
+            </div>
 
             {/* Email */}
-            <div style={{ marginBottom: '18px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.07em',
-                marginBottom: '7px',
-              }}>
-                Email address
-              </label>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={labelStyle}>Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  color: '#0f172a',
-                  background: '#f8fafc',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box' as const,
-                }}
+                style={inputStyle}
                 onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
                 onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
               />
             </div>
 
             {/* Password */}
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.07em',
-                marginBottom: '7px',
-              }}>
-                Password
-              </label>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={labelStyle}>Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  color: '#0f172a',
-                  background: '#f8fafc',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box' as const,
-                }}
+                style={inputStyle}
                 onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
                 onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
               />
             </div>
 
-            {/* Forgot password */}
-            <div style={{ textAlign: 'right', marginBottom: '24px' }}>
-              <span style={{ fontSize: '12px', color: '#0097A7', fontWeight: 600, cursor: 'pointer' }}>
-                Forgot password?
-              </span>
+            {/* Confirm Password */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={labelStyle}>Confirm Password</label>
+              <input
+                type="password"
+                value={rePassword}
+                onChange={e => setRePassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={inputStyle}
+                onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
+                onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
+              />
             </div>
 
             {/* Error */}
@@ -293,21 +304,21 @@ export default function LoginPage() {
                     style={{ animation: 'spin 0.8s linear infinite' }}>
                     <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                   </svg>
-                  Signing in...
+                  Creating account...
                 </>
               ) : (
-                <>Sign in →</>
+                <>Create account →</>
               )}
             </button>
 
           </form>
 
           <p style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', marginTop: '24px' }}>
-            Don't have an account?{' '}
+            Already have an account?{' '}
             <span
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/login')}
               style={{ color: '#0097A7', fontWeight: 600, cursor: 'pointer' }}>
-              Sign up
+              Sign in
             </span>
           </p>
         </div>
@@ -322,4 +333,3 @@ export default function LoginPage() {
     </div>
   )
 }
->>>>>>> 8224f62d054782341a71003b6335b6195a750d10
