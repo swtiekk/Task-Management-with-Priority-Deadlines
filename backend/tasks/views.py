@@ -1,9 +1,16 @@
+import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.generics import ListCreateAPIView
 from django.utils import timezone
-from .models import Project, Task
-from .serializers import ProjectSerializer, TaskSerializer
+from .models import Project, Task, KnowledgeBase, ChatMessage
+from .serializers import (
+    ProjectSerializer,
+    TaskSerializer,
+    KnowledgeBaseSerializer,
+    ChatMessageSerializer
+)
 
 
 # ── Project Views ──────────────────────────────────────────
@@ -199,3 +206,67 @@ class OverdueTasksView(APIView):
 
         serializer = TaskSerializer(overdue_tasks, many=True)
         return Response(serializer.data)
+
+
+# ── Chatbot Views ──────────────────────────────────────────
+
+class ChatbotView(ListCreateAPIView):
+    queryset = ChatMessage.objects.all()
+    serializer_class = ChatMessageSerializer
+
+    def create(self, request, *args, **kwargs):
+        user_message = request.data.get("message")
+
+        # save user message
+        user_chat = ChatMessage.objects.create(
+            role='user',
+            message=user_message
+        )
+
+        # get knowledge
+        knowledge = KnowledgeBase.objects.all()
+        context = ""
+        for item in knowledge:
+            if item.text_content:
+                context += item.text_content + "\n"
+
+        prompt = f"""
+You are a helpful assistant.
+
+Knowledge:
+{context}
+
+User:
+{user_message}
+"""
+
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "qwen2.5:0.5b",
+                    "prompt": prompt,
+                    "stream": False
+                },
+                timeout=30
+            )
+            data = response.json()
+            ai_response = data.get("response", "No response from AI.")
+        except requests.exceptions.RequestException as e:
+            ai_response = f"Error connecting to AI service: {str(e)}"
+
+        # save AI response
+        ai_chat = ChatMessage.objects.create(
+            role='assistant',
+            message=ai_response
+        )
+
+        return Response({
+            "user": ChatMessageSerializer(user_chat).data,
+            "assistant": ChatMessageSerializer(ai_chat).data
+        }, status=status.HTTP_201_CREATED)
+
+
+class KnowledgeBaseView(ListCreateAPIView):
+    queryset = KnowledgeBase.objects.all()
+    serializer_class = KnowledgeBaseSerializer

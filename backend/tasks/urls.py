@@ -5,6 +5,8 @@ from .views import (
     TaskListView,
     TaskDetailView,
     OverdueTasksView,
+    ChatbotView,
+    KnowledgeBaseView,
 )
 
 urlpatterns = [
@@ -14,4 +16,7 @@ urlpatterns = [
     path('tasks/', TaskListView.as_view(), name='task-list'),
     path('tasks/overdue/', OverdueTasksView.as_view(), name='task-overdue'),
     path('tasks/<int:pk>/', TaskDetailView.as_view(), name='task-detail'),
+
+    path('chat/', ChatbotView.as_view(), name='chatbot'),
+    path('knowledge/', KnowledgeBaseView.as_view(), name='knowledge-base'),
 ]

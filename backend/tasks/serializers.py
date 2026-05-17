@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
-from .models import Project, Task
+from .models import Project, Task, KnowledgeBase, ChatMessage
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -98,3 +98,15 @@ class ProjectSerializer(serializers.ModelSerializer):
             return 0
         completed = obj.tasks.filter(status='Completed').count()
         return round((completed / total) * 100)
+
+
+class KnowledgeBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KnowledgeBase
+        fields = '__all__'
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = '__all__'
