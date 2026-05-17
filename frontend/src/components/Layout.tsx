@@ -4,6 +4,7 @@ import { Plus, Trash2, Clock, LayoutDashboard, FolderOpen } from 'lucide-react'
 import api from '../api/axios'
 import { useTheme } from '../context/ThemeContext'
 import ThemeToggle from './ThemeToggle'
+import Chatbot from './Chatbot'
 
 interface Project {
   id: number
@@ -244,6 +245,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowX: 'hidden' }}>
           {children}
         </div>
+        <Chatbot />
       </div>
     </>
   )
