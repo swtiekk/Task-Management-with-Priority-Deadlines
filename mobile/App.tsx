@@ -11,6 +11,7 @@ import ProjectsScreen from './src/screens/ProjectsScreen';
 import ProjectDetailScreen from './src/screens/ProjectDetailScreen';
 import OverdueScreen from './src/screens/OverdueScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import Chatbot from './src/components/Chatbot';
 import api from './src/api/axios';
 
 export type RootStackParamList = {
@@ -55,20 +56,23 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator 
-        screenOptions={{ headerShown: false }}
-        initialRouteName={userToken ? 'Home' : 'Login'}
-      >
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Projects" component={ProjectsScreen} />
-        <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} />
-        <Stack.Screen name="Overdue" component={OverdueScreen} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-      </Stack.Navigator>
-      <StatusBar style="auto" />
-    </NavigationContainer>
+    <View style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator 
+          screenOptions={{ headerShown: false }}
+          initialRouteName={userToken ? 'Home' : 'Login'}
+        >
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Projects" component={ProjectsScreen} />
+          <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} />
+          <Stack.Screen name="Overdue" component={OverdueScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+        </Stack.Navigator>
+        <StatusBar style="auto" />
+      </NavigationContainer>
+      <Chatbot />
+    </View>
   );
 }
