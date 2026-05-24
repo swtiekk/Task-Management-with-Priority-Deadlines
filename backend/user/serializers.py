@@ -4,6 +4,11 @@ from .models import User
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
+    name = serializers.CharField(required=False, allow_blank=True)
+    address = serializers.CharField(required=False, allow_blank=True)
+    age = serializers.IntegerField(required=False, allow_null=True)
+    birthday = serializers.DateField(required=False, allow_null=True)
+
     class Meta(UserCreateSerializer.Meta):
         model = User
         fields = ('id', 'email', 'name', 'address', 'age', 'birthday', 'password')
