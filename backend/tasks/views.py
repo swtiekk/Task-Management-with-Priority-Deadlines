@@ -86,7 +86,7 @@ class ProjectDetailView(APIView):
         project.delete()
         return Response(
             {"message": "Project deleted successfully."},
-            status=status.HTTP_204_NO_CONTENT
+            status=status.HTTP_200_OK
         )
 
 
@@ -188,7 +188,7 @@ class TaskDetailView(APIView):
         task.delete()
         return Response(
             {"message": "Task deleted successfully."},
-            status=status.HTTP_204_NO_CONTENT
+            status=status.HTTP_200_OK
         )
 
 
