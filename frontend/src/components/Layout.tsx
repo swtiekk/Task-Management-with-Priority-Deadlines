@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+<<<<<<< HEAD
+import { Plus, Trash2, Clock, LayoutDashboard, FolderOpen, LogOut } from 'lucide-react'
+=======
 import { Plus, Trash2, Clock, LayoutDashboard, FolderOpen } from 'lucide-react'
+>>>>>>> 8224f62d054782341a71003b6335b6195a750d10
 import api from '../api/axios'
 import { useTheme } from '../context/ThemeContext'
 import ThemeToggle from './ThemeToggle'
@@ -34,7 +38,11 @@ function Layout({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
-  useEffect(() => { fetchProjects() }, [location.pathname])
+  useEffect(() => { 
+    if (localStorage.getItem('access_token')) {
+      fetchProjects() 
+    }
+  }, [location.pathname])
 
   const fetchProjects = async () => {
     try {
@@ -42,6 +50,12 @@ function Layout({ children }: { children: React.ReactNode }) {
       setProjects(res.data)
       setTotalOverdue(res.data.reduce((s: number, p: Project) => s + p.overdue_tasks, 0))
     } catch { }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    navigate('/login')
   }
 
   const showToast = (msg: string) => {
@@ -108,6 +122,18 @@ function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Sidebar */}
         <aside style={{
+<<<<<<< HEAD
+          width: '220px',
+          height: '100vh',
+          backgroundColor: '#ffffff',
+          borderRight: '1px solid rgba(0,0,0,0.07)',
+          padding: '24px 14px',
+          display: 'flex', flexDirection: 'column', flexShrink: 0,
+          position: 'sticky',
+          top: 0,
+          overflowY: 'auto',
+        }}>
+=======
           width: '220px', height: '100vh',
           backgroundColor: isDark ? '#1F2937' : '#ffffff',
           borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}`,
@@ -116,6 +142,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           position: 'sticky', top: 0, overflowY: 'auto',
         }}>
 
+>>>>>>> 8224f62d054782341a71003b6335b6195a750d10
           {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 6px', marginBottom: '32px' }}>
             <div style={{ width: '32px', height: '32px', background: '#0F6E56', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -227,16 +254,27 @@ function Layout({ children }: { children: React.ReactNode }) {
               <ThemeToggle />
             </div>
             <button
+<<<<<<< HEAD
+              onClick={handleLogout}
+              style={{ ...navItem(false), color: '#9CA3AF' }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2';
+                (e.currentTarget as HTMLButtonElement).style.color = '#DC2626';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                (e.currentTarget as HTMLButtonElement).style.color = '#9CA3AF';
+              }}
+              aria-label="Logout"
+=======
               style={navItem(isActive('/profile'))}
               onClick={() => navigate('/profile')}
               onMouseEnter={e => { if (!isActive('/profile')) (e.currentTarget as HTMLButtonElement).style.background = isDark ? '#374151' : '#F5F4EF' }}
               onMouseLeave={e => { if (!isActive('/profile')) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+>>>>>>> 8224f62d054782341a71003b6335b6195a750d10
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-              Profile
+              <LogOut size={14} />
+              Logout
             </button>
           </div>
         </aside>

@@ -1,3 +1,17 @@
+<<<<<<< HEAD
+import React from 'react'
+import LoginForm from '../components/LoginForm'
+
+const LoginPage: React.FC = () => {
+  return (
+    <div className="min-h-[80vh] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <LoginForm />
+    </div>
+  )
+}
+
+export default LoginPage
+=======
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -308,3 +322,4 @@ export default function LoginPage() {
     </div>
   )
 }
+>>>>>>> 8224f62d054782341a71003b6335b6195a750d10
