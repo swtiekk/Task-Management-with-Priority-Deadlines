@@ -1,5 +1,5 @@
 import api from "../api/axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Message {
   role: "user" | "assistant";
@@ -11,6 +11,34 @@ function Chatbot() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [lastUser, setLastUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const syncUser = () => {
+      let userId: string | null = null;
+      const userStr = localStorage.getItem("user");
+
+      try {
+        const user = userStr ? JSON.parse(userStr) : null;
+        userId = user?.email || (user?.id ? String(user.id) : null);
+      } catch {
+        userId = null;
+      }
+
+      if (userId !== lastUser) {
+        setMessages([]);
+        setMessage("");
+        setLastUser(userId);
+      }
+    };
+
+    syncUser();
+    const intervalId = window.setInterval(syncUser, 500);
+
+    return () => window.clearInterval(intervalId);
+  }, [isOpen, lastUser]);
 
   const sendMessage = async () => {
     if (!message.trim()) return;

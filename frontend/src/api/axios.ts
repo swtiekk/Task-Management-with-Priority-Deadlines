@@ -7,4 +7,14 @@ const api = axios.create({
   },
 })
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `JWT ${token}`
+  } else {
+    delete config.headers.Authorization
+  }
+  return config
+})
+
 export default api

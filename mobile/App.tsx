@@ -13,6 +13,7 @@ import OverdueScreen from './src/screens/OverdueScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import Chatbot from './src/components/Chatbot';
 import api from './src/api/axios';
+import { clearSession } from './src/api/auth';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -39,6 +40,7 @@ export default function App() {
           await api.get('/v1/auth/users/me/');
           setUserToken(token);
         } catch {
+          await clearSession();
           setUserToken(null);
         }
       }

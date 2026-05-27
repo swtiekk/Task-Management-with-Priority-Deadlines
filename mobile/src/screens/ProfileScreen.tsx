@@ -7,6 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 import { RootStackParamList } from '../../App';
 import api from '../api/axios';
 import { colors, screen } from '../theme';
+import { clearSession } from '../api/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
@@ -67,6 +68,8 @@ export default function ProfileScreen({ navigation }: Props) {
 
   const loadProfile = async () => {
     try {
+      setProfile(defaultProfile);
+      setDraft(defaultProfile);
       const [meRes, savedProfile] = await Promise.all([
         api.get('/v1/auth/users/me/'),
         SecureStore.getItemAsync('user_profile'),
@@ -145,10 +148,16 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const handleLogout = async () => {
-    await SecureStore.deleteItemAsync('token');
-    await SecureStore.deleteItemAsync('user');
-    api.defaults.headers.common.Authorization = '';
-    navigation.replace('Login');
+    setProfile(defaultProfile);
+    setDraft(defaultProfile);
+    setStats({
+      totalTasks: 0,
+      completedTasks: 0,
+      pendingTasks: 0,
+      overdueTasks: 0,
+    });
+    await clearSession();
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
   if (loading) {

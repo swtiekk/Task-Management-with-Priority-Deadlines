@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { User, Mail, Calendar, Shield, Settings, LogOut, Camera, Bell, CheckCircle2, Clock, Save, X, MapPin, Hash } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import api from '../api/axios'
+import { clearSession } from '../api/auth'
 
 interface Stats {
   totalTasks: number
@@ -31,41 +32,20 @@ const ProfilePage = () => {
   const isDark = theme === 'dark'
 
   const [isEditing, setIsEditing] = useState(false)
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    // First try to get from Django login (localStorage 'user')
-    const loggedIn = localStorage.getItem('user')
-    if (loggedIn) {
-      const u = JSON.parse(loggedIn)
-      return {
-        name: u.name || 'Unknown',
-        role: 'Team Member',
-        email: u.email || '',
-        username: u.username || '',
-        address: u.address || '',
-        age: u.age || null,
-        birthday: u.birthday || '',
-        joinedDate: 'March 2024',
-        admin: false,
-        notifications: true,
-        privacyMode: false,
-      }
-    }
-    // Fallback to saved profile
-    const saved = localStorage.getItem('user_profile')
-    return saved ? JSON.parse(saved) : {
-      name: 'Alex Xavier',
-      role: 'Product Manager',
-      email: 'alex.xavier@example.com',
-      username: 'alexavier',
-      address: '',
-      age: null,
-      birthday: '',
-      joinedDate: 'March 2024',
-      admin: true,
-      notifications: true,
-      privacyMode: false,
-    }
-  })
+  const defaultProfile: UserProfile = {
+    name: 'TaskFlow User',
+    role: 'Team Member',
+    email: '',
+    username: '',
+    address: '',
+    age: null,
+    birthday: '',
+    joinedDate: 'March 2024',
+    admin: false,
+    notifications: true,
+    privacyMode: false,
+  }
+  const [profile, setProfile] = useState<UserProfile>(defaultProfile)
 
   const [stats, setStats] = useState<Stats>({
     totalTasks: 0,
@@ -76,17 +56,56 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState('')
 
-  // Redirect to login if not authenticated
   useEffect(() => {
-    const loggedIn = localStorage.getItem('user')
-    if (!loggedIn) {
+    const token = localStorage.getItem('token')
+    if (!token) {
       navigate('/login')
     }
   }, [navigate])
 
   useEffect(() => {
+    let isActive = true
+
+    const loadProfile = async () => {
+      try {
+        setProfile(defaultProfile)
+        const [meRes, savedProfile] = await Promise.all([
+          api.get('/v1/auth/users/me/'),
+          Promise.resolve(localStorage.getItem('user_profile')),
+        ])
+        const me = meRes.data
+        const parsedSaved = savedProfile ? JSON.parse(savedProfile) as Partial<UserProfile> : {}
+        const nameFromApi = me.name || [me.first_name, me.last_name].filter(Boolean).join(' ').trim()
+        const merged: UserProfile = {
+          ...defaultProfile,
+          ...parsedSaved,
+          name: parsedSaved.name || nameFromApi || me.email || defaultProfile.name,
+          email: me.email || parsedSaved.email || '',
+          username: me.username || parsedSaved.username || '',
+        }
+
+        if (!isActive) return
+
+        setProfile(merged)
+        localStorage.setItem('user', JSON.stringify(me))
+        localStorage.setItem('user_profile', JSON.stringify(merged))
+      } catch (error) {
+        console.error('Failed to fetch profile', error)
+        if (isActive) {
+          clearSession()
+          navigate('/login')
+        }
+      }
+    }
+
     const fetchStats = async () => {
       try {
+        setStats({
+          totalTasks: 0,
+          completedTasks: 0,
+          pendingTasks: 0,
+          overdueTasks: 0,
+        })
         const [, taskRes] = await Promise.all([
           api.get('/projects/'),
           api.get('/tasks/'),
@@ -94,6 +113,7 @@ const ProfilePage = () => {
         const tasks = taskRes.data
         const completed = tasks.filter((t: any) => t.status === 'Completed').length
         const overdue = tasks.filter((t: any) => t.is_overdue).length
+        if (!isActive) return
         setStats({
           totalTasks: tasks.length,
           completedTasks: completed,
@@ -103,11 +123,23 @@ const ProfilePage = () => {
       } catch (error) {
         console.error('Failed to fetch profile stats', error)
       } finally {
-        setLoading(false)
+        if (isActive) {
+          setLoading(false)
+        }
       }
     }
-    fetchStats()
-  }, [])
+
+    setLoading(true)
+    Promise.all([loadProfile(), fetchStats()]).finally(() => {
+      if (isActive) {
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [navigate])
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -122,8 +154,7 @@ const ProfilePage = () => {
 
   const handleLogout = () => {
     if (confirm('Are you sure you want to sign out?')) {
-      localStorage.removeItem('user')
-      localStorage.removeItem('user_profile')
+      clearSession()
       navigate('/login')
     }
   }

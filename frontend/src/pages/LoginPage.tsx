@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { clearSession, storeSession } from '../api/auth'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -14,19 +15,20 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
+      clearSession()
       const tokenRes = await axios.post('http://localhost:8000/api/v1/auth/jwt/create/', {
         email,
         password,
       })
 
       const accessToken = tokenRes.data.access
+      const refreshToken = tokenRes.data.refresh
 
       const userRes = await axios.get('http://localhost:8000/api/v1/auth/users/me/', {
         headers: { Authorization: `JWT ${accessToken}` },
       })
 
-      localStorage.setItem('token', accessToken)
-      localStorage.setItem('user', JSON.stringify(userRes.data))
+      storeSession(accessToken, userRes.data, refreshToken)
       navigate('/profile')
 
     } catch (err: any) {

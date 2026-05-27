@@ -36,6 +36,15 @@ class TaskSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Title cannot be blank.")
         return value.strip()
 
+    def validate_project(self, value):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            if value.owner_id != request.user.id:
+                raise serializers.ValidationError(
+                    "Project does not belong to the current user."
+                )
+        return value
+
     def validate_priority(self, value):
         valid = ['Low', 'Medium', 'High']
         if value not in valid:
@@ -64,6 +73,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'id',
+            'owner',
             'name',
             'description',
             'color',
@@ -75,11 +85,18 @@ class ProjectSerializer(serializers.ModelSerializer):
             'overdue_tasks',
             'completion_percentage',
         ]
+        read_only_fields = ['owner']
 
     def validate_name(self, value):
         if not value.strip():
             raise serializers.ValidationError("Project name cannot be blank.")
         return value.strip()
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            validated_data['owner'] = request.user
+        return super().create(validated_data)
 
     def get_total_tasks(self, obj):
         return obj.tasks.count()

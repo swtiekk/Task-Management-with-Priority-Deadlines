@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
+from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from .models import Project, Task, KnowledgeBase, ChatMessage
 from .serializers import (
@@ -16,30 +17,32 @@ from .serializers import (
 # ── Project Views ──────────────────────────────────────────
 
 class ProjectListView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        projects = Project.objects.all().order_by('-created_at')
+        projects = Project.objects.filter(owner=request.user).order_by('-created_at')
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = ProjectSerializer(data=request.data)
+        serializer = ProjectSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProjectDetailView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk):
+    def get_object(self, pk, user):
         try:
-            return Project.objects.get(pk=pk)
+            return Project.objects.get(pk=pk, owner=user)
         except Project.DoesNotExist:
             return None
 
     def get(self, request, pk):
-        project = self.get_object(pk)
+        project = self.get_object(pk, request.user)
         if project is None:
             return Response(
                 {"error": "Project not found."},
@@ -49,7 +52,7 @@ class ProjectDetailView(APIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
-        project = self.get_object(pk)
+        project = self.get_object(pk, request.user)
         if project is None:
             return Response(
                 {"error": "Project not found."},
@@ -62,7 +65,7 @@ class ProjectDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
-        project = self.get_object(pk)
+        project = self.get_object(pk, request.user)
         if project is None:
             return Response(
                 {"error": "Project not found."},
@@ -77,7 +80,7 @@ class ProjectDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        project = self.get_object(pk)
+        project = self.get_object(pk, request.user)
         if project is None:
             return Response(
                 {"error": "Project not found."},
@@ -93,9 +96,10 @@ class ProjectDetailView(APIView):
 # ── Task Views ─────────────────────────────────────────────
 
 class TaskListView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        tasks = Task.objects.all().order_by('-created_at')
+        tasks = Task.objects.filter(project__owner=request.user).order_by('-created_at')
 
         priority = request.query_params.get('priority')
         if priority:
@@ -128,15 +132,16 @@ class TaskListView(APIView):
 
 
 class TaskDetailView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk):
+    def get_object(self, pk, user):
         try:
-            return Task.objects.get(pk=pk)
+            return Task.objects.get(pk=pk, project__owner=user)
         except Task.DoesNotExist:
             return None
 
     def get(self, request, pk):
-        task = self.get_object(pk)
+        task = self.get_object(pk, request.user)
         if task is None:
             return Response(
                 {"error": "Task not found."},
@@ -146,7 +151,7 @@ class TaskDetailView(APIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
-        task = self.get_object(pk)
+        task = self.get_object(pk, request.user)
         if task is None:
             return Response(
                 {"error": "Task not found."},
@@ -162,7 +167,7 @@ class TaskDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
-        task = self.get_object(pk)
+        task = self.get_object(pk, request.user)
         if task is None:
             return Response(
                 {"error": "Task not found."},
@@ -179,7 +184,7 @@ class TaskDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        task = self.get_object(pk)
+        task = self.get_object(pk, request.user)
         if task is None:
             return Response(
                 {"error": "Task not found."},
@@ -193,11 +198,13 @@ class TaskDetailView(APIView):
 
 
 class OverdueTasksView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         today = timezone.now().date()
         overdue_tasks = Task.objects.filter(
-            deadline__lt=today
+            deadline__lt=today,
+            project__owner=request.user,
         ).exclude(status='Completed')
 
         priority = request.query_params.get('priority')
@@ -211,6 +218,7 @@ class OverdueTasksView(APIView):
 # ── Chatbot Views ──────────────────────────────────────────
 
 class ChatbotView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = ChatMessage.objects.all()
     serializer_class = ChatMessageSerializer
 
@@ -268,5 +276,6 @@ User:
 
 
 class KnowledgeBaseView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = KnowledgeBase.objects.all()
     serializer_class = KnowledgeBaseSerializer

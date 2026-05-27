@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import api from '../api/axios';
 import { colors, screen } from '../theme';
+
+import { clearSession, storeSession } from '../api/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -29,6 +31,7 @@ export default function SignUpScreen({ navigation }: Props) {
 
     setLoading(true);
     try {
+      await clearSession();
       await api.post('/v1/auth/users/', {
         name,
         email,
@@ -38,11 +41,12 @@ export default function SignUpScreen({ navigation }: Props) {
 
       const tokenRes = await api.post('/v1/auth/jwt/create/', { email, password });
       const token = tokenRes.data.access;
-      await SecureStore.setItemAsync('token', token);
-      api.defaults.headers.common.Authorization = `JWT ${token}`;
-      const userRes = await api.get('/v1/auth/users/me/');
-      await SecureStore.setItemAsync('user', JSON.stringify(userRes.data));
-      navigation.replace('Home');
+      const refreshToken = tokenRes.data.refresh;
+      const userRes = await axios.get(`${api.defaults.baseURL}/v1/auth/users/me/`, {
+        headers: { Authorization: `JWT ${token}` },
+      });
+      await storeSession(token, userRes.data, refreshToken);
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     } catch (signUpError: any) {
       console.error('Signup failed', signUpError);
       const data = signUpError.response?.data;

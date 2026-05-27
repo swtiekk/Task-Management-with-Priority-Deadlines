@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { NativeModules, Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 const LAN_BACKEND_HOST = '192.168.100.11';
 
@@ -36,6 +37,16 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+api.interceptors.request.use(async (config) => {
+  const token = await SecureStore.getItemAsync('token');
+  if (token) {
+    config.headers.Authorization = `JWT ${token}`;
+  } else {
+    delete config.headers.Authorization;
+  }
+  return config;
 });
 
 export default api;

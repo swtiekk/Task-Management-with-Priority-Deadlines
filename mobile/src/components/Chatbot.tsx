@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import api from '../api/axios';
 import { colors } from '../theme';
 
@@ -24,7 +25,48 @@ export default function Chatbot() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [lastUser, setLastUser] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    let isActive = true;
+
+    const syncUser = async () => {
+      try {
+        const userStr = await SecureStore.getItemAsync('user');
+        const user = userStr ? JSON.parse(userStr) : null;
+        const userId = user?.email || (user?.id ? String(user.id) : null);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (userId !== lastUser) {
+          setMessages([]);
+          setMessage('');
+          setLastUser(userId);
+        }
+      } catch {
+        if (isActive && lastUser !== null) {
+          setMessages([]);
+          setMessage('');
+          setLastUser(null);
+        }
+      }
+    };
+
+    syncUser();
+    const intervalId = setInterval(syncUser, 500);
+
+    return () => {
+      isActive = false;
+      clearInterval(intervalId);
+    };
+  }, [isOpen, lastUser]);
 
   const sendMessage = async () => {
     if (!message.trim() || loading) {
