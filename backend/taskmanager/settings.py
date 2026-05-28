@@ -111,10 +111,27 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
+# ── Email ──────────────────────────────────────────────────
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'pojane2005@gmail.com'      # <-- ibutang ang imong Gmail
+EMAIL_HOST_PASSWORD = 'elwy vxuh ovgr qslb'  # <-- Gmail App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# ── Site ───────────────────────────────────────────────────
+DOMAIN = 'localhost:5173'
+SITE_NAME = 'TaskFlow'
+
 # ── Djoser ─────────────────────────────────────────────────
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': True,
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'SEND_CONFIRMATION_EMAIL': True,
+    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
     'SERIALIZERS': {
         'user_create': 'user.serializers.CustomUserCreateSerializer',
         'user': 'user.serializers.CustomUserSerializer',

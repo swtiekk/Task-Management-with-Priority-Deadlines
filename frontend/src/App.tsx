@@ -7,6 +7,7 @@ import OverduePage from './pages/OverduePage'
 import ProfilePage from './pages/ProfilePage'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
+import ActivationPage from './pages/ActivationPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const user = localStorage.getItem('user')
@@ -36,6 +37,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/activate/:uid/:token" element={<ActivationPage />} />
         <Route path="/" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
         <Route path="/projects" element={<PrivateRoute><Layout><ProjectPage /></Layout></PrivateRoute>} />
         <Route path="/projects/:id" element={<PrivateRoute><Layout><ProjectDetailPage /></Layout></PrivateRoute>} />
