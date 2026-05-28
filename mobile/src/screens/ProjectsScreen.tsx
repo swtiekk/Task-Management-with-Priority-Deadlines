@@ -14,12 +14,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+
 import { RootStackParamList } from '../../App';
+import { TabParamList } from '../../App';
 import api from '../api/axios';
 import { extractApiErrorMessage } from '../api/errors';
 import { colors, getProjectPalette, projectPalettes, screen } from '../theme';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Projects'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Projects'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 interface Project {
   id: number;

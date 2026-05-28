@@ -2,7 +2,7 @@ import axios from 'axios';
 import { NativeModules, Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-const LAN_BACKEND_HOST = '192.168.100.11';
+const LAN_BACKEND_HOST = '192.168.254.120';
 
 const extractHost = (url?: string | null) => {
   if (!url) {

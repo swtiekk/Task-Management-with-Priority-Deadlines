@@ -3,11 +3,18 @@ import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, Toucha
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+
 import { RootStackParamList } from '../../App';
+import { TabParamList } from '../../App';
 import api from '../api/axios';
 import { colors, formatDate, getGreeting, getProjectPalette, priorityTone, screen } from '../theme';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Home'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 interface Project {
   id: number;
@@ -79,17 +86,12 @@ export default function HomeScreen({ navigation }: Props) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={colors.teal} />}
       >
         <View style={styles.hero}>
-          <View style={styles.heroRow}>
-            <View style={styles.heroCopy}>
-              <Text style={styles.heroKicker}>{getGreeting()}</Text>
-              <Text style={styles.heroTitle}>Overview</Text>
-              <Text style={styles.heroMeta}>
-                {projects.length} project{projects.length !== 1 ? 's' : ''} | {totalTasks} tasks total
-              </Text>
-            </View>
-            <TouchableOpacity style={styles.avatarButton} onPress={() => navigation.navigate('Profile')}>
-              <MaterialIcons name="person-outline" size={22} color="#FFFFFF" />
-            </TouchableOpacity>
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroKicker}>{getGreeting()}</Text>
+            <Text style={styles.heroTitle}>Overview</Text>
+            <Text style={styles.heroMeta}>
+              {projects.length} project{projects.length !== 1 ? 's' : ''} | {totalTasks} tasks total
+            </Text>
           </View>
         </View>
 
@@ -140,6 +142,7 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
           ) : (
             <>
+              {/* Recent Tasks Panel */}
               <View style={[styles.panel, screen.card]}>
                 <View style={styles.panelHeader}>
                   <Text style={styles.panelTitle}>Recent Tasks</Text>
@@ -180,43 +183,39 @@ export default function HomeScreen({ navigation }: Props) {
                 })}
               </View>
 
+              {/* Compact Projects at a Glance */}
               <View style={[styles.panel, screen.card]}>
                 <View style={styles.panelHeader}>
-                  <Text style={styles.panelTitle}>Projects</Text>
+                  <Text style={styles.panelTitle}>Projects at a Glance</Text>
                   <TouchableOpacity onPress={() => navigation.navigate('Projects')}>
-                    <Text style={styles.panelAction}>View all</Text>
+                    <Text style={styles.panelAction}>Manage</Text>
                   </TouchableOpacity>
                 </View>
-                {projects.map((project) => {
-                  const palette = getProjectPalette(project);
-                  const pct = project.completion_percentage ?? 0;
-                  return (
-                    <TouchableOpacity
-                      key={project.id}
-                      style={[styles.projectCard, { backgroundColor: palette.bg, borderColor: palette.border }]}
-                      onPress={() => navigation.navigate('ProjectDetail', { id: project.id })}
-                    >
-                      <View style={styles.projectTop}>
-                        <View style={styles.projectNameRow}>
-                          <View style={[styles.colorDot, { backgroundColor: palette.dot }]} />
-                          <Text style={[styles.projectName, { color: palette.text }]} numberOfLines={1}>{project.name}</Text>
+                {projects.length === 0 ? (
+                  <Text style={styles.panelEmpty}>No projects yet</Text>
+                ) : (
+                  <View style={{ paddingHorizontal: 18, paddingVertical: 14 }}>
+                    {projects.slice(0, 3).map((project) => {
+                      const palette = getProjectPalette(project);
+                      return (
+                        <View key={project.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: palette.dot, marginRight: 10 }} />
+                          <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: colors.text }} numberOfLines={1}>
+                            {project.name}
+                          </Text>
+                          <Text style={{ fontSize: 12, color: palette.dot, fontWeight: '700' }}>
+                            {project.completion_percentage ?? 0}%
+                          </Text>
                         </View>
-                        <Text style={styles.projectCount}>{project.total_tasks} tasks</Text>
-                      </View>
-                      {project.overdue_tasks > 0 && (
-                        <View style={styles.projectTagDanger}>
-                          <Text style={styles.projectTagDangerText}>{project.overdue_tasks} late</Text>
-                        </View>
-                      )}
-                      <View style={styles.progressRow}>
-                        <View style={[styles.progressTrack, { backgroundColor: `${palette.dot}22` }]}>
-                          <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: palette.dot }]} />
-                        </View>
-                        <Text style={[styles.progressValue, { color: palette.dot }]}>{pct}%</Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                      );
+                    })}
+                    {projects.length > 3 && (
+                      <Text style={{ fontSize: 12, color: colors.textHint, marginTop: 4 }}>
+                        +{projects.length - 3} more
+                      </Text>
+                    )}
+                  </View>
+                )}
               </View>
             </>
           )}
@@ -241,14 +240,8 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 56,
   },
-  heroRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
   heroCopy: {
     flex: 1,
-    paddingRight: 16,
   },
   heroKicker: {
     fontSize: 14,
@@ -265,16 +258,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 13,
     color: 'rgba(255,255,255,0.72)',
-  },
-  avatarButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   content: {
     paddingHorizontal: 20,
@@ -498,74 +481,6 @@ const styles = StyleSheet.create({
   },
   taskDateOverdue: {
     color: colors.danger,
-    fontWeight: '700',
-  },
-  projectCard: {
-    marginHorizontal: 16,
-    marginTop: 14,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-  },
-  projectTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  projectNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 10,
-  },
-  colorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  projectName: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  projectCount: {
-    fontSize: 11,
-    color: colors.textHint,
-  },
-  projectTagDanger: {
-    alignSelf: 'flex-start',
-    marginTop: 10,
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: colors.dangerLight,
-    borderWidth: 1,
-    borderColor: '#F4C7C5',
-  },
-  projectTagDangerText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.danger,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 999,
-    overflow: 'hidden',
-    marginRight: 10,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 999,
-  },
-  progressValue: {
-    fontSize: 12,
     fontWeight: '700',
   },
 });

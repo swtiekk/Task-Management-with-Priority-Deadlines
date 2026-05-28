@@ -3,13 +3,20 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOp
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import * as SecureStore from 'expo-secure-store';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+
 import { RootStackParamList } from '../../App';
+import { TabParamList } from '../../App';
+import * as SecureStore from 'expo-secure-store';
 import api from '../api/axios';
 import { colors, screen } from '../theme';
 import { clearSession } from '../api/auth';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Profile'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 interface Stats {
   totalTasks: number;
@@ -157,7 +164,8 @@ export default function ProfileScreen({ navigation }: Props) {
       overdueTasks: 0,
     });
     await clearSession();
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    navigation.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });
+
   };
 
   if (loading) {

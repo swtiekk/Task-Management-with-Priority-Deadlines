@@ -31,7 +31,9 @@ export default function LoginScreen({ navigation }: Props) {
         headers: { Authorization: `JWT ${token}` },
       });
       await storeSession(token, userRes.data, refreshToken);
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      
+      // Updated navigation after successful login
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (loginError: any) {
       console.error('Login failed', loginError);
       setError(loginError.response?.data?.detail || 'Invalid email or password.');

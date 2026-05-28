@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import axios from 'axios';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import api from '../api/axios';
 import { colors, screen } from '../theme';
 
-import { clearSession, storeSession } from '../api/auth';
+import { clearSession } from '../api/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -31,7 +30,8 @@ export default function SignUpScreen({ navigation }: Props) {
 
     setLoading(true);
     try {
-      await clearSession();
+      await clearSession(); // Clear any previous session
+
       await api.post('/v1/auth/users/', {
         name,
         email,
@@ -39,14 +39,11 @@ export default function SignUpScreen({ navigation }: Props) {
         re_password: rePassword,
       });
 
-      const tokenRes = await api.post('/v1/auth/jwt/create/', { email, password });
-      const token = tokenRes.data.access;
-      const refreshToken = tokenRes.data.refresh;
-      const userRes = await axios.get(`${api.defaults.baseURL}/v1/auth/users/me/`, {
-        headers: { Authorization: `JWT ${token}` },
+      // Navigate to email verification instead of auto-login
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'EmailVerification', params: { email } }],
       });
-      await storeSession(token, userRes.data, refreshToken);
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     } catch (signUpError: any) {
       console.error('Signup failed', signUpError);
       const data = signUpError.response?.data;

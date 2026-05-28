@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
-  ActivityIndicator,
+  Animated,
+  Dimensions,
   KeyboardAvoidingView,
+  Modal,
+  PanResponder,
   Platform,
   ScrollView,
   StyleSheet,
@@ -11,142 +14,150 @@ import {
   View,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 import api from '../api/axios';
 import { colors } from '../theme';
 
+const ICON_SIZE = 56;
+const MARGIN = 16;
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+
 interface Message {
   role: 'user' | 'assistant';
-  text: string;
+  content: string;
 }
 
 export default function Chatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState('');
+  const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lastUser, setLastUser] = useState<string | null>(null);
-  const scrollRef = useRef<ScrollView | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
+  // Position state — starts bottom-right
+  const position = useRef(new Animated.ValueXY({
+    x: SCREEN_W - ICON_SIZE - MARGIN,
+    y: SCREEN_H - ICON_SIZE - MARGIN - 80, // 80 for tab bar
+  })).current;
 
-    let isActive = true;
+  // Track actual position for clamping
+  const posRef = useRef({
+    x: SCREEN_W - ICON_SIZE - MARGIN,
+    y: SCREEN_H - ICON_SIZE - MARGIN - 80,
+  });
 
-    const syncUser = async () => {
-      try {
-        const userStr = await SecureStore.getItemAsync('user');
-        const user = userStr ? JSON.parse(userStr) : null;
-        const userId = user?.email || (user?.id ? String(user.id) : null);
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2,
 
-        if (!isActive) {
-          return;
-        }
+      onPanResponderGrant: () => {
+        position.setOffset({ x: posRef.current.x, y: posRef.current.y });
+        position.setValue({ x: 0, y: 0 });
+      },
 
-        if (userId !== lastUser) {
-          setMessages([]);
-          setMessage('');
-          setLastUser(userId);
-        }
-      } catch {
-        if (isActive && lastUser !== null) {
-          setMessages([]);
-          setMessage('');
-          setLastUser(null);
-        }
-      }
-    };
+      onPanResponderMove: Animated.event(
+        [null, { dx: position.x, dy: position.y }],
+        { useNativeDriver: false }
+      ),
 
-    syncUser();
-    const intervalId = setInterval(syncUser, 500);
+      onPanResponderRelease: (_, gesture) => {
+        position.flattenOffset();
 
-    return () => {
-      isActive = false;
-      clearInterval(intervalId);
-    };
-  }, [isOpen, lastUser]);
+        // Clamp within screen bounds
+        const clampedX = Math.max(MARGIN, Math.min(
+          SCREEN_W - ICON_SIZE - MARGIN,
+          posRef.current.x + gesture.dx
+        ));
+        const clampedY = Math.max(MARGIN + 40, Math.min(
+          SCREEN_H - ICON_SIZE - MARGIN - 80,
+          posRef.current.y + gesture.dy
+        ));
+
+        // Snap to nearest edge (left or right)
+        const snapX = clampedX + ICON_SIZE / 2 < SCREEN_W / 2
+          ? MARGIN
+          : SCREEN_W - ICON_SIZE - MARGIN;
+
+        Animated.spring(position, {
+          toValue: { x: snapX, y: clampedY },
+          useNativeDriver: false,
+          bounciness: 6,
+        }).start();
+
+        posRef.current = { x: snapX, y: clampedY };
+      },
+    })
+  ).current;
 
   const sendMessage = async () => {
-    if (!message.trim() || loading) {
-      return;
-    }
+  const text = input.trim();
+  if (!text || loading) return;
 
-    const nextMessage = message.trim();
-    const userMessage: Message = { role: 'user', text: nextMessage };
-    setMessages((current) => [...current, userMessage]);
-    setMessage('');
-    setLoading(true);
+  const userMessage: Message = { role: 'user', content: text };
+  const updated = [...messages, userMessage];
+  setMessages(updated);
+  setInput('');
+  setLoading(true);
 
-    try {
-      const response = await api.post('/chat/', { message: nextMessage });
-      const botMessage: Message = {
-        role: 'assistant',
-        text: response.data?.assistant?.message || 'No response from assistant.',
-      };
-      setMessages((current) => [...current, botMessage]);
-    } catch (error) {
-      console.error('Chatbot request failed', error);
-      setMessages((current) => [
-        ...current,
-        { role: 'assistant', text: 'Server error.' },
-      ]);
-    } finally {
-      setLoading(false);
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
-    }
-  };
+  try {
+    const response = await api.post('/chat/', { message: text });
+    const botText = response.data?.assistant?.message || 'No response from assistant.';
+    setMessages([...updated, { role: 'assistant', content: botText }]);
+  } catch (error) {
+    console.error('Chatbot request failed', error);
+    setMessages([...updated, { role: 'assistant', content: 'Server error.' }]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <View pointerEvents="box-none" style={styles.root}>
-      {isOpen && (
+    <>
+      <Animated.View
+        style={[styles.fab, { transform: position.getTranslateTransform() }]}
+        {...panResponder.panHandlers}
+      >
+        <TouchableOpacity style={styles.fabInner} onPress={() => setOpen(true)} activeOpacity={0.85}>
+          <MaterialIcons name="smart-toy" size={26} color="#FFFFFF" />
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          pointerEvents="box-none"
-          style={styles.windowWrap}
+          style={styles.modalWrap}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.window}>
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>AI Assistant</Text>
-              <TouchableOpacity onPress={() => setIsOpen(false)}>
-                <MaterialIcons name="close" size={20} color="#FFFFFF" />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHeader}>
+              <View style={styles.sheetTitleRow}>
+                <MaterialIcons name="smart-toy" size={20} color={colors.teal} />
+                <Text style={styles.sheetTitle}>AI Assistant</Text>
+              </View>
+              <TouchableOpacity onPress={() => setOpen(false)}>
+                <MaterialIcons name="close" size={22} color={colors.textHint} />
               </TouchableOpacity>
             </View>
 
             <ScrollView
-              ref={scrollRef}
-              style={styles.messages}
-              contentContainerStyle={styles.messagesContent}
-              onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+              style={styles.messageList}
+              contentContainerStyle={styles.messageListContent}
             >
               {messages.length === 0 && (
-                <Text style={styles.emptyText}>Ask anything about your tasks and projects.</Text>
+                <Text style={styles.emptyHint}>Ask me anything about your tasks or projects.</Text>
               )}
-
-              {messages.map((item, index) => (
+              {messages.map((msg, i) => (
                 <View
-                  key={`${item.role}-${index}`}
-                  style={[
-                    styles.bubble,
-                    item.role === 'user' ? styles.userBubble : styles.assistantBubble,
-                  ]}
+                  key={i}
+                  style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleBot]}
                 >
-                  <Text
-                    style={[
-                      styles.bubbleText,
-                      item.role === 'user' ? styles.userBubbleText : styles.assistantBubbleText,
-                    ]}
-                  >
-                    {item.text}
+                  <Text style={[styles.bubbleText, msg.role === 'user' && styles.bubbleTextUser]}>
+                    {msg.content}
                   </Text>
                 </View>
               ))}
-
               {loading && (
-                <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color={colors.textHint} />
-                  <Text style={styles.loadingText}>AI is typing...</Text>
+                <View style={[styles.bubble, styles.bubbleBot]}>
+                  <Text style={styles.bubbleText}>Thinking…</Text>
                 </View>
               )}
             </ScrollView>
@@ -154,153 +165,143 @@ export default function Chatbot() {
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.input}
-                placeholder="Type message..."
+                placeholder="Ask something..."
                 placeholderTextColor={colors.textHint}
-                value={message}
-                onChangeText={setMessage}
+                value={input}
+                onChangeText={setInput}
                 onSubmitEditing={sendMessage}
                 returnKeyType="send"
               />
-              <TouchableOpacity style={styles.sendButton} onPress={sendMessage} disabled={loading}>
+              <TouchableOpacity
+                style={[styles.sendButton, (!input.trim() || loading) && styles.sendButtonDisabled]}
+                onPress={sendMessage}
+                disabled={!input.trim() || loading}
+              >
                 <MaterialIcons name="send" size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
-      )}
-
-      <TouchableOpacity style={styles.fab} onPress={() => setIsOpen((current) => !current)}>
-        <MaterialIcons name="chat" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
-    </View>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    padding: 20,
+  fab: {
+    position: 'absolute',
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    zIndex: 999,
   },
-  windowWrap: {
-    width: '100%',
-    alignItems: 'flex-end',
-    marginBottom: 16,
-  },
-  window: {
-    width: '100%',
-    maxWidth: 360,
-    height: 500,
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-    shadowColor: '#0F172A',
-    shadowOpacity: 0.18,
-    shadowOffset: { width: 0, height: 12 },
-    shadowRadius: 28,
+  fabInner: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    borderRadius: ICON_SIZE / 2,
+    backgroundColor: colors.teal,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
     elevation: 8,
   },
-  header: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+  modalWrap: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(15,23,42,0.45)',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: '65%',
+    paddingBottom: 20,
+  },
+  sheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSoft,
   },
-  headerTitle: {
-    fontSize: 15,
+  sheetTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sheetTitle: {
+    marginLeft: 8,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
-  messages: {
+  messageList: {
     flex: 1,
-    backgroundColor: colors.surface,
   },
-  messagesContent: {
-    padding: 12,
+  messageListContent: {
+    padding: 16,
   },
-  emptyText: {
-    fontSize: 13,
+  emptyHint: {
+    textAlign: 'center',
     color: colors.textHint,
-    lineHeight: 19,
+    fontSize: 13,
+    marginTop: 24,
   },
   bubble: {
-    maxWidth: '82%',
-    borderRadius: 14,
-    paddingHorizontal: 12,
+    maxWidth: '80%',
+    borderRadius: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 10,
   },
-  userBubble: {
+  bubbleUser: {
+    backgroundColor: colors.teal,
     alignSelf: 'flex-end',
-    backgroundColor: '#2563EB',
+    borderBottomRightRadius: 4,
   },
-  assistantBubble: {
+  bubbleBot: {
+    backgroundColor: colors.surfaceMuted,
     alignSelf: 'flex-start',
-    backgroundColor: '#F1F5F9',
+    borderBottomLeftRadius: 4,
   },
   bubbleText: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  userBubbleText: {
-    color: '#FFFFFF',
-  },
-  assistantBubbleText: {
+    fontSize: 14,
     color: colors.text,
+    lineHeight: 20,
   },
-  loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  loadingText: {
-    marginLeft: 8,
-    fontSize: 12,
-    color: colors.textHint,
+  bubbleTextUser: {
+    color: '#FFFFFF',
   },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: colors.borderSoft,
-    padding: 10,
-    backgroundColor: colors.surface,
+    alignItems: 'center',
   },
   input: {
     flex: 1,
     backgroundColor: colors.surfaceMuted,
-    borderWidth: 1,
-    borderColor: colors.borderSoft,
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
     color: colors.text,
+    marginRight: 10,
   },
   sendButton: {
-    marginLeft: 10,
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.teal,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#0F172A',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 18,
-    elevation: 8,
+  sendButtonDisabled: {
+    opacity: 0.45,
   },
 });
