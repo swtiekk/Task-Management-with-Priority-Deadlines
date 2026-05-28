@@ -1,12 +1,12 @@
 from pathlib import Path
 from datetime import timedelta
+import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-your-secret-key-here'
-
 DEBUG = True
-
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -55,10 +56,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'taskmanager.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -74,23 +74,20 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── Custom User Model ──────────────────────────────────────
 AUTH_USER_MODEL = 'user.User'
 
-# ── CORS ──────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = True
-
 CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
-
 CORS_ALLOW_HEADERS = [
     'accept', 'accept-encoding', 'authorization',
     'content-type', 'dnt', 'origin', 'user-agent',
     'x-csrftoken', 'x-requested-with',
 ]
 
-# ── REST Framework + JWT ───────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -104,27 +101,24 @@ REST_FRAMEWORK = {
     ],
 }
 
-# ── Simple JWT ─────────────────────────────────────────────
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-# ── Email ──────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'pojane2005@gmail.com'      # <-- ibutang ang imong Gmail
-EMAIL_HOST_PASSWORD = 'elwy vxuh ovgr qslb'  # <-- Gmail App Password
+EMAIL_HOST_USER = 'pojane2005@gmail.com'
+EMAIL_HOST_PASSWORD = 'elwy vxuh ovgr qslb'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# ── Site ───────────────────────────────────────────────────
+# ← CHANGE THIS after you deploy frontend, put your Vercel URL here
 DOMAIN = 'localhost:5173'
 SITE_NAME = 'TaskFlow'
 
-# ── Djoser ─────────────────────────────────────────────────
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': True,
