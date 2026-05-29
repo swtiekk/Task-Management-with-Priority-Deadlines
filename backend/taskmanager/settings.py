@@ -107,18 +107,20 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
+# ── Email (Brevo SMTP) ─────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp-relay.brevo.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'pojane2005@gmail.com'
-EMAIL_HOST_PASSWORD = 'elwy vxuh ovgr qslb'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_USER = 'ace0e6001@smtp-brevo.com'
+EMAIL_HOST_PASSWORD = 'Y3mRLTMr45kqI0jD'
+DEFAULT_FROM_EMAIL = 'soler.florie@gmail.com'
 
-# ← CHANGE THIS after you deploy frontend, put your Vercel URL here
+# ── Site ───────────────────────────────────────────────────
 DOMAIN = 'localhost:5173'
 SITE_NAME = 'TaskFlow'
 
+# ── Djoser ─────────────────────────────────────────────────
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': True,
