@@ -107,14 +107,9 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-# ── Email (Brevo SMTP) ─────────────────────────────────────
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp-relay.brevo.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'ace0e6001@smtp-brevo.com'
-EMAIL_HOST_PASSWORD = 'Y3mRLTMr45kqI0jD'
+# ── Email (Brevo HTTP API) ─────────────────────────────────
+EMAIL_BACKEND = 'tasks.brevo_backend.BrevoEmailBackend'
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
 DEFAULT_FROM_EMAIL = 'ace0e6001@smtp-brevo.com'
 
 # ── Site ───────────────────────────────────────────────────
