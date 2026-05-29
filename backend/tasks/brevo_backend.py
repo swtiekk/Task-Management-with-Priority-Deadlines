@@ -1,3 +1,4 @@
+import os
 import sib_api_v3_sdk
 from django.core.mail.backends.base import BaseEmailBackend
 
