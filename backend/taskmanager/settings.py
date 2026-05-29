@@ -110,8 +110,9 @@ SIMPLE_JWT = {
 # ── Email (Brevo SMTP) ─────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp-relay.brevo.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'ace0e6001@smtp-brevo.com'
 EMAIL_HOST_PASSWORD = 'Y3mRLTMr45kqI0jD'
 DEFAULT_FROM_EMAIL = 'ace0e6001@smtp-brevo.com'
@@ -124,9 +125,9 @@ SITE_NAME = 'TaskFlow'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': True,
-    'SEND_ACTIVATION_EMAIL': False,  # ← changed
+    'SEND_ACTIVATION_EMAIL': True,  # ← changed
     'ACTIVATION_URL': 'activate/{uid}/{token}',
-    'SEND_CONFIRMATION_EMAIL': False,  # ← changed
+    'SEND_CONFIRMATION_EMAIL': True,  # ← changed
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
     'SERIALIZERS': {
         'user_create': 'user.serializers.CustomUserCreateSerializer',
