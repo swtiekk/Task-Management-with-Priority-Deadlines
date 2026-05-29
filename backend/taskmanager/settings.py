@@ -114,10 +114,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ace0e6001@smtp-brevo.com'
 EMAIL_HOST_PASSWORD = 'Y3mRLTMr45kqI0jD'
-DEFAULT_FROM_EMAIL = 'soler.florie@gmail.com'
+DEFAULT_FROM_EMAIL = 'ace0e6001@smtp-brevo.com'
 
 # ── Site ───────────────────────────────────────────────────
-DOMAIN = 'localhost:5173'
+DOMAIN = 'task-management-with-priority-deadl.vercel.app'
 SITE_NAME = 'TaskFlow'
 
 # ── Djoser ─────────────────────────────────────────────────
