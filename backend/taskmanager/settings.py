@@ -110,7 +110,7 @@ SIMPLE_JWT = {
 # ── Email (Brevo HTTP API) ─────────────────────────────────
 EMAIL_BACKEND = 'tasks.brevo_backend.BrevoEmailBackend'
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
-DEFAULT_FROM_EMAIL = 'ace0e6001@smtp-brevo.com'
+DEFAULT_FROM_EMAIL = 'soler.florie@gmail.com'
 
 # ── Site ───────────────────────────────────────────────────
 DOMAIN = 'task-management-with-priority-deadl.vercel.app'
