@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../api/axios'   // ← Updated import
 
 export default function ActivationPage() {
   const { uid, token } = useParams()
@@ -9,7 +9,7 @@ export default function ActivationPage() {
   const [countdown, setCountdown] = useState(3)
 
   useEffect(() => {
-    axios.post('http://localhost:8000/api/v1/auth/users/activation/', { uid, token })
+    api.post('/v1/auth/users/activation/', { uid, token })
       .then(() => {
         setStatus('success')
         const interval = setInterval(() => {
@@ -25,7 +25,7 @@ export default function ActivationPage() {
       .catch(() => {
         setStatus('error')
       })
-  }, [uid, token])
+  }, [uid, token, navigate])
 
   return (
     <div style={{
@@ -79,7 +79,6 @@ export default function ActivationPage() {
           {/* ── LOADING ── */}
           {status === 'loading' && (
             <>
-              {/* Spinner */}
               <div style={{
                 width: '72px', height: '72px',
                 border: '4px solid #e2e8f0',
@@ -105,7 +104,6 @@ export default function ActivationPage() {
           {/* ── SUCCESS ── */}
           {status === 'success' && (
             <>
-              {/* Icon circle */}
               <div style={{
                 width: '80px', height: '80px',
                 background: 'linear-gradient(135deg, #0097A7, #00bcd4)',
@@ -132,10 +130,8 @@ export default function ActivationPage() {
                 is now active. You may now sign in to TaskFlow.
               </p>
 
-              {/* Divider */}
               <div style={{ borderTop: '1px solid #f1f5f9', marginBottom: '28px' }} />
 
-              {/* Countdown */}
               <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '20px' }}>
                 Redirecting to login in{' '}
                 <span style={{ fontWeight: 700, color: '#0097A7' }}>{countdown}s</span>
@@ -162,7 +158,6 @@ export default function ActivationPage() {
           {/* ── ERROR ── */}
           {status === 'error' && (
             <>
-              {/* Icon circle */}
               <div style={{
                 width: '80px', height: '80px',
                 background: 'linear-gradient(135deg, #ef4444, #f87171)',
@@ -190,7 +185,6 @@ export default function ActivationPage() {
                 Please register again to receive a new verification link.
               </p>
 
-              {/* Divider */}
               <div style={{ borderTop: '1px solid #f1f5f9', marginBottom: '28px' }} />
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
