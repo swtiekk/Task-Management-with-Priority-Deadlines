@@ -28,11 +28,11 @@ export default function SignUpPage() {
       clearSession()
       await axios.post('http://localhost:8000/api/v1/auth/users/', {
         email,
+        name,
         password,
         re_password: rePassword,
       })
 
-      // Show success message instead of auto-login
       setSuccess(true)
 
     } catch (err: any) {
@@ -103,13 +103,10 @@ export default function SignUpPage() {
         }}>
           <div>
             <div style={{
-              width: '48px',
-              height: '48px',
+              width: '48px', height: '48px',
               background: 'rgba(255,255,255,0.2)',
               borderRadius: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               marginBottom: '28px',
             }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -172,10 +169,7 @@ export default function SignUpPage() {
               <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px', lineHeight: 1.6 }}>
                 We sent a verification link to
               </p>
-              <p style={{
-                fontSize: '15px', fontWeight: 700, color: '#0097A7',
-                marginBottom: '24px',
-              }}>
+              <p style={{ fontSize: '15px', fontWeight: 700, color: '#0097A7', marginBottom: '24px' }}>
                 {email}
               </p>
               <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '28px', lineHeight: 1.6 }}>
@@ -197,7 +191,6 @@ export default function SignUpPage() {
             </div>
 
           ) : (
-            /* ── Form State ── */
             <>
               <h2 style={{
                 fontSize: '26px', fontWeight: 700, color: '#0f172a',
