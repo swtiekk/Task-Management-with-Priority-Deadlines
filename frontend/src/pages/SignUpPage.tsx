@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../api/axios'
 import { clearSession } from '../api/auth'
 
 export default function SignUpPage() {
@@ -26,15 +26,13 @@ export default function SignUpPage() {
 
     try {
       clearSession()
-      await axios.post('http://localhost:8000/api/v1/auth/users/', {
+      await api.post('/v1/auth/users/', {
         email,
         name,
         password,
         re_password: rePassword,
       })
-
       setSuccess(true)
-
     } catch (err: any) {
       const data = err.response?.data
       if (data) {
@@ -49,63 +47,39 @@ export default function SignUpPage() {
   }
 
   const inputStyle = {
-    width: '100%',
-    padding: '11px 14px',
-    border: '1.5px solid #e2e8f0',
-    borderRadius: '10px',
-    fontSize: '14px',
-    color: '#0f172a',
-    background: '#f8fafc',
-    outline: 'none',
-    fontFamily: 'inherit',
-    transition: 'border-color 0.2s',
-    boxSizing: 'border-box' as const,
+    width: '100%', padding: '11px 14px',
+    border: '1.5px solid #e2e8f0', borderRadius: '10px',
+    fontSize: '14px', color: '#0f172a', background: '#f8fafc',
+    outline: 'none', fontFamily: 'inherit',
+    transition: 'border-color 0.2s', boxSizing: 'border-box' as const,
   }
 
   const labelStyle = {
-    display: 'block',
-    fontSize: '11px',
-    fontWeight: 700,
-    color: '#64748b',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.07em',
-    marginBottom: '7px',
+    display: 'block', fontSize: '11px', fontWeight: 700,
+    color: '#64748b', textTransform: 'uppercase' as const,
+    letterSpacing: '0.07em', marginBottom: '7px',
   }
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: '#f0f4f8',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      fontFamily: "'DM Sans', system-ui, sans-serif",
+      minHeight: '100vh', background: '#f0f4f8',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '24px', fontFamily: "'DM Sans', system-ui, sans-serif",
     }}>
       <div style={{
-        display: 'flex',
-        borderRadius: '20px',
+        display: 'flex', borderRadius: '20px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
-        overflow: 'hidden',
-        width: '100%',
-        maxWidth: '780px',
+        overflow: 'hidden', width: '100%', maxWidth: '780px',
       }}>
-
-        {/* ── Left Panel ── */}
         <div style={{
-          width: '320px',
-          flexShrink: 0,
-          background: '#0097A7',
-          padding: '48px 40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
+          width: '320px', flexShrink: 0, background: '#0097A7',
+          padding: '48px 40px', display: 'flex',
+          flexDirection: 'column', justifyContent: 'space-between',
         }}>
           <div>
             <div style={{
               width: '48px', height: '48px',
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '14px',
+              background: 'rgba(255,255,255,0.2)', borderRadius: '14px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               marginBottom: '28px',
             }}>
@@ -115,7 +89,6 @@ export default function SignUpPage() {
                 <path d="M8 21h8M12 17v4" />
               </svg>
             </div>
-
             <h1 style={{
               fontSize: '22px', fontWeight: 700, color: '#ffffff',
               margin: '0 0 8px 0', letterSpacing: '-0.3px',
@@ -128,7 +101,6 @@ export default function SignUpPage() {
             }}>
               Manage tasks smarter,<br />deliver projects faster.
             </p>
-
             {[
               'Priority-based task management',
               'Deadline tracking & overdue alerts',
@@ -144,19 +116,15 @@ export default function SignUpPage() {
               </div>
             ))}
           </div>
-
           <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
             © 2025 TaskFlow. All rights reserved.
           </p>
         </div>
 
-        {/* ── Right Panel ── */}
         <div style={{
           flex: 1, background: '#ffffff', padding: '48px 44px',
           display: 'flex', flexDirection: 'column', justifyContent: 'center',
         }}>
-
-          {/* ── Success State ── */}
           {success ? (
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '64px', marginBottom: '16px' }}>📧</div>
@@ -189,7 +157,6 @@ export default function SignUpPage() {
                 Go to Login →
               </button>
             </div>
-
           ) : (
             <>
               <h2 style={{
@@ -203,48 +170,36 @@ export default function SignUpPage() {
               </p>
 
               <form onSubmit={handleSignUp}>
-
-                {/* Name */}
                 <div style={{ marginBottom: '16px' }}>
                   <label style={labelStyle}>Full Name</label>
-                  <input
-                    type="text" value={name}
+                  <input type="text" value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="John Doe" required style={inputStyle}
                     onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
                     onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
                   />
                 </div>
-
-                {/* Email */}
                 <div style={{ marginBottom: '16px' }}>
                   <label style={labelStyle}>Email Address</label>
-                  <input
-                    type="email" value={email}
+                  <input type="email" value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com" required style={inputStyle}
                     onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
                     onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
                   />
                 </div>
-
-                {/* Password */}
                 <div style={{ marginBottom: '16px' }}>
                   <label style={labelStyle}>Password</label>
-                  <input
-                    type="password" value={password}
+                  <input type="password" value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••" required style={inputStyle}
                     onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
                     onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
                   />
                 </div>
-
-                {/* Confirm Password */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={labelStyle}>Confirm Password</label>
-                  <input
-                    type="password" value={rePassword}
+                  <input type="password" value={rePassword}
                     onChange={e => setRePassword(e.target.value)}
                     placeholder="••••••••" required style={inputStyle}
                     onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
@@ -252,7 +207,6 @@ export default function SignUpPage() {
                   />
                 </div>
 
-                {/* Error */}
                 {error && (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
@@ -269,9 +223,7 @@ export default function SignUpPage() {
                   </div>
                 )}
 
-                {/* Submit */}
-                <button
-                  type="submit" disabled={loading}
+                <button type="submit" disabled={loading}
                   style={{
                     width: '100%', padding: '13px',
                     background: loading ? '#67b8c1' : '#0097A7',
@@ -296,13 +248,11 @@ export default function SignUpPage() {
                     <>Create account →</>
                   )}
                 </button>
-
               </form>
 
               <p style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', marginTop: '24px' }}>
                 Already have an account?{' '}
-                <span
-                  onClick={() => navigate('/login')}
+                <span onClick={() => navigate('/login')}
                   style={{ color: '#0097A7', fontWeight: 600, cursor: 'pointer' }}>
                   Sign in
                 </span>

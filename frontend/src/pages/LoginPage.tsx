@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../api/axios'
 import { clearSession, storeSession } from '../api/auth'
 
 export default function LoginPage() {
@@ -16,7 +16,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       clearSession()
-      const tokenRes = await axios.post('http://localhost:8000/api/v1/auth/jwt/create/', {
+      const tokenRes = await api.post('/v1/auth/jwt/create/', {
         email,
         password,
       })
@@ -24,9 +24,10 @@ export default function LoginPage() {
       const accessToken = tokenRes.data.access
       const refreshToken = tokenRes.data.refresh
 
-      const userRes = await axios.get('http://localhost:8000/api/v1/auth/users/me/', {
-        headers: { Authorization: `JWT ${accessToken}` },
-      })
+      localStorage.setItem('token', accessToken)
+      api.defaults.headers.common.Authorization = `JWT ${accessToken}`
+
+      const userRes = await api.get('/v1/auth/users/me/')
 
       storeSession(accessToken, userRes.data, refreshToken)
       navigate('/profile')
@@ -56,8 +57,6 @@ export default function LoginPage() {
         width: '100%',
         maxWidth: '780px',
       }}>
-
-        {/* ── Left Panel ── */}
         <div style={{
           width: '320px',
           flexShrink: 0,
@@ -84,25 +83,18 @@ export default function LoginPage() {
                 <path d="M8 21h8M12 17v4" />
               </svg>
             </div>
-
             <h1 style={{
-              fontSize: '22px',
-              fontWeight: 700,
-              color: '#ffffff',
-              margin: '0 0 8px 0',
-              letterSpacing: '-0.3px',
+              fontSize: '22px', fontWeight: 700, color: '#ffffff',
+              margin: '0 0 8px 0', letterSpacing: '-0.3px',
             }}>
               TaskFlow
             </h1>
             <p style={{
-              fontSize: '13px',
-              color: 'rgba(255,255,255,0.7)',
-              lineHeight: 1.6,
-              margin: '0 0 36px 0',
+              fontSize: '13px', color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.6, margin: '0 0 36px 0',
             }}>
               Manage tasks smarter,<br />deliver projects faster.
             </p>
-
             {[
               'Priority-based task management',
               'Deadline tracking & overdue alerts',
@@ -118,27 +110,18 @@ export default function LoginPage() {
               </div>
             ))}
           </div>
-
           <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
             © 2025 TaskFlow. All rights reserved.
           </p>
         </div>
 
-        {/* ── Right Panel ── */}
         <div style={{
-          flex: 1,
-          background: '#ffffff',
-          padding: '48px 44px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
+          flex: 1, background: '#ffffff', padding: '48px 44px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
         }}>
           <h2 style={{
-            fontSize: '26px',
-            fontWeight: 700,
-            color: '#0f172a',
-            margin: '0 0 6px 0',
-            letterSpacing: '-0.3px',
+            fontSize: '26px', fontWeight: 700, color: '#0f172a',
+            margin: '0 0 6px 0', letterSpacing: '-0.3px',
           }}>
             Welcome back
           </h2>
@@ -147,99 +130,65 @@ export default function LoginPage() {
           </p>
 
           <form onSubmit={handleLogin}>
-
-            {/* Email */}
             <div style={{ marginBottom: '18px' }}>
               <label style={{
-                display: 'block',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.07em',
-                marginBottom: '7px',
+                display: 'block', fontSize: '11px', fontWeight: 700,
+                color: '#64748b', textTransform: 'uppercase' as const,
+                letterSpacing: '0.07em', marginBottom: '7px',
               }}>
                 Email address
               </label>
               <input
-                type="email"
-                value={email}
+                type="email" value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
+                placeholder="you@example.com" required
                 style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  color: '#0f172a',
-                  background: '#f8fafc',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box' as const,
+                  width: '100%', padding: '11px 14px',
+                  border: '1.5px solid #e2e8f0', borderRadius: '10px',
+                  fontSize: '14px', color: '#0f172a', background: '#f8fafc',
+                  outline: 'none', fontFamily: 'inherit',
+                  transition: 'border-color 0.2s', boxSizing: 'border-box' as const,
                 }}
                 onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
                 onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
               />
             </div>
 
-            {/* Password */}
             <div style={{ marginBottom: '12px' }}>
               <label style={{
-                display: 'block',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.07em',
-                marginBottom: '7px',
+                display: 'block', fontSize: '11px', fontWeight: 700,
+                color: '#64748b', textTransform: 'uppercase' as const,
+                letterSpacing: '0.07em', marginBottom: '7px',
               }}>
                 Password
               </label>
               <input
-                type="password"
-                value={password}
+                type="password" value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
+                placeholder="••••••••" required
                 style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  color: '#0f172a',
-                  background: '#f8fafc',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  transition: 'border-color 0.2s',
-                  boxSizing: 'border-box' as const,
+                  width: '100%', padding: '11px 14px',
+                  border: '1.5px solid #e2e8f0', borderRadius: '10px',
+                  fontSize: '14px', color: '#0f172a', background: '#f8fafc',
+                  outline: 'none', fontFamily: 'inherit',
+                  transition: 'border-color 0.2s', boxSizing: 'border-box' as const,
                 }}
                 onFocus={e => { e.target.style.borderColor = '#0097A7'; e.target.style.background = '#fff' }}
                 onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc' }}
               />
             </div>
 
-            {/* Forgot password */}
             <div style={{ textAlign: 'right', marginBottom: '24px' }}>
               <span style={{ fontSize: '12px', color: '#0097A7', fontWeight: 600, cursor: 'pointer' }}>
                 Forgot password?
               </span>
             </div>
 
-            {/* Error */}
             {error && (
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: '10px',
-                padding: '12px 14px',
-                marginBottom: '16px',
+                display: 'flex', alignItems: 'center', gap: '10px',
+                background: '#fef2f2', border: '1px solid #fecaca',
+                borderRadius: '10px', padding: '12px 14px', marginBottom: '16px',
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="#ef4444" strokeWidth="2" strokeLinecap="round">
@@ -251,27 +200,17 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Submit */}
             <button
-              type="submit"
-              disabled={loading}
+              type="submit" disabled={loading}
               style={{
-                width: '100%',
-                padding: '13px',
+                width: '100%', padding: '13px',
                 background: loading ? '#67b8c1' : '#0097A7',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '14px',
-                fontWeight: 700,
+                color: '#ffffff', border: 'none', borderRadius: '10px',
+                fontSize: '14px', fontWeight: 700,
                 cursor: loading ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit',
-                letterSpacing: '0.02em',
-                transition: 'background 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
+                fontFamily: 'inherit', letterSpacing: '0.02em',
+                transition: 'background 0.2s', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', gap: '8px',
               }}
             >
               {loading ? (
@@ -287,13 +226,11 @@ export default function LoginPage() {
                 <>Sign in →</>
               )}
             </button>
-
           </form>
 
           <p style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', marginTop: '24px' }}>
             Don't have an account?{' '}
-            <span
-              onClick={() => navigate('/signup')}
+            <span onClick={() => navigate('/signup')}
               style={{ color: '#0097A7', fontWeight: 600, cursor: 'pointer' }}>
               Sign up
             </span>
