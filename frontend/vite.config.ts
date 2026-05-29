@@ -7,5 +7,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify('https://task-management-with-priority-deadlines-production.up.railway.app/api')
+  }
 })
-
